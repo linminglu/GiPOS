@@ -1,0 +1,1193 @@
+************************************************************
+版本：		V16.12.10.20
+发布日期:	2016-12-10
+************************************************************
+ALTER TABLE webreport_setting ADD COLUMN edit_mode INT DEFAULT 0;
+INSERT INTO macros VALUES ('58', 'EFT_NO_PRINT', '0', '取消EFT打印：1-不打印');
+INSERT INTO macros VALUES ('59', 'TIPS_SUGGEST', '15,18,20', '建议小费比例用,逗号分隔');
+INSERT INTO macros VALUES ('60', 'ITEM_ICON_STYLE', '0', '菜单图片显示风格:0- 菜名在图片底部 1- 菜名居中');
+CREATE TABLE `www_version` (
+  `major_version` int(11) NOT NULL,
+  `menu_item` int(11) DEFAULT NULL,
+  `condiment` int(11) DEFAULT NULL,
+  `course` int(11) DEFAULT NULL,
+  `res_info` int(11) DEFAULT NULL,
+  `discount` int(11) DEFAULT NULL,
+  `service` int(11) DEFAULT NULL,
+  `tax` int(11) DEFAULT NULL,
+  `payment` int(11) DEFAULT NULL,
+  `tables` int(11) DEFAULT NULL,
+  `employee` int(11) DEFAULT NULL,
+  `employee_class` int(11) DEFAULT NULL,
+  `order_default` int(11) DEFAULT NULL,
+  `price_scheme` int(11) DEFAULT NULL,
+  `consumption_limit` int(11) DEFAULT NULL,
+  `reasons` int(11) DEFAULT NULL,
+  `printer` int(11) DEFAULT NULL,
+  `workstation` int(11) DEFAULT NULL,
+  `major_group` int(11) DEFAULT NULL,
+  `family_group` int(11) DEFAULT NULL,
+  `periods` int(11) DEFAULT NULL,
+  `rvc_center` int(11) DEFAULT NULL,
+  `macros` int(11) DEFAULT NULL,
+  `extend_1` int(11) DEFAULT NULL,
+  `extend_2` int(11) DEFAULT NULL,
+  `extend_3` int(11) DEFAULT NULL,
+  PRIMARY KEY (`major_version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE shift_info;
+CREATE TABLE `shift_info` (
+  `shift_id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` int(11) DEFAULT NULL,
+  `employee_id` int(11) NOT NULL,
+  `employee_name` varchar(10) DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `pos_device_id` int(11) DEFAULT NULL,
+  `pos_name` varchar(10) DEFAULT NULL,
+  `detail` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`shift_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE order_head ADD COLUMN tips_amount decimal(11,2);
+ALTER TABLE history_order_head ADD COLUMN tips_amount decimal(11,2);
+ALTER TABLE order_head ADD COLUMN member_discount decimal(11,2);
+ALTER TABLE history_order_head ADD COLUMN member_discount decimal(11,2);
+ALTER TABLE `order_detail` ADD COLUMN rush INT DEFAULT 0;
+ALTER TABLE `history_order_detail` ADD COLUMN rush INT DEFAULT 0;
+UPDATE employee_class SET authority_4=1;
+UPDATE employee SET end_date=NOW() WHERE ISNULL(end_date);
+
+UPDATE total_statistics SET db_version='20161210';
+************************************************************
+版本：		V16.09.01.20
+发布日期:	2016-09-01
+************************************************************
+ALTER TABLE `restaurant` MODIFY COLUMN ali_appid varchar(64);
+create index idx_kds on history_order_detail (is_make,order_time);
+ALTER TABLE `webreport_setting` ADD COLUMN preorder_time datetime DEFAULT NULL;
+
+DELIMITER ;;
+DROP TRIGGER trigger_soldout_add ;;
+CREATE TRIGGER `trigger_soldout_add` AFTER INSERT ON `bargain_price_item` 
+FOR EACH ROW BEGIN
+	UPDATE webreport_setting SET soldout = soldout | 2;
+END;;
+DROP TRIGGER trigger_soldout_del ;;
+CREATE TRIGGER `trigger_soldout_del` AFTER DELETE ON `bargain_price_item` 
+FOR EACH ROW BEGIN
+	UPDATE webreport_setting SET soldout = soldout | 2;
+END;;
+DROP TRIGGER trigger_soldout_update ;;
+CREATE TRIGGER `trigger_soldout_update` AFTER UPDATE ON `bargain_price_item` 
+FOR EACH ROW BEGIN
+	UPDATE webreport_setting SET soldout = soldout | 1;
+END;;
+UPDATE total_statistics SET db_version='20160901';
+************************************************************
+版本：			V16.06.18.20
+发布日期：	2016-06-18
+************************************************************
+INSERT INTO macros VALUES ('56', 'PRINT_MEMBER_TWICE', '0', '会员小票是否打印2次');
+INSERT INTO macros VALUES ('57', 'PRINT_COURSE_COMBINE', '0', '送厨单套餐在一张单打印');
+ALTER TABLE `price_scheme_group` ADD COLUMN from_time time DEFAULT NULL;
+ALTER TABLE `price_scheme_group` ADD COLUMN to_time time DEFAULT NULL;
+ALTER TABLE `price_scheme_group` ADD COLUMN week INT DEFAULT 127;
+ALTER TABLE `price_scheme_group` ADD COLUMN month INT DEFAULT NULL;
+ALTER TABLE `price_scheme_group` ADD COLUMN begin date DEFAULT NULL;
+ALTER TABLE `price_scheme_group` ADD COLUMN end date DEFAULT NULL;
+ALTER TABLE `price_scheme_group` ADD COLUMN disable INT DEFAULT 0;
+
+DROP TRIGGER trigger_trailer_update ;
+DELIMITER ;;
+CREATE TRIGGER trigger_trailer_update AFTER UPDATE ON descriptors_trailers
+FOR EACH ROW BEGIN
+	UPDATE webreport_setting SET res_info = res_info | 8;
+END;;
+DELIMITER ;
+UPDATE total_statistics SET db_version='20160618';
+************************************************************
+版本：			V16.03.15.20
+发布日期：	2016-03-15
+************************************************************
+ALTER TABLE `discount_service` MODIFY COLUMN percent decimal(11,2);
+ALTER TABLE `service_tip` MODIFY COLUMN percent decimal(11,2);
+UPDATE total_statistics SET db_version='20160315';
+************************************************************
+版本：			V15.12.15.20
+发布日期：	2015-12-15
+************************************************************
+DROP TABLE IF EXISTS `print_task`;
+CREATE TABLE `print_task` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `data` varchar(21840) DEFAULT NULL,
+  `time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+INSERT INTO macros VALUES ('54', 'PRINT_DISCOUNT_SEPARATE', '1', '收银小票折扣服务费与菜品分离打印');
+INSERT INTO macros VALUES ('55', 'PRINT_SHIFT_TWICE', '0', '交班小票是否打印2次');
+ALTER TABLE `discount_service` MODIFY COLUMN amount decimal(11,2);
+ALTER TABLE `service_tip` MODIFY COLUMN amount decimal(11,2);
+ALTER TABLE `webreport_setting` ADD COLUMN soldout INT DEFAULT 0;
+ALTER TABLE `webreport_setting` ADD COLUMN soldoutp INT DEFAULT 0;
+ALTER TABLE `print_devices` ADD COLUMN beep INT DEFAULT 0;
+ALTER TABLE `order_detail` ADD COLUMN print_class INT;
+ALTER TABLE `history_order_detail` ADD COLUMN print_class INT;
+ALTER TABLE `restaurant` ADD COLUMN wechat_mchid varchar(32);
+ALTER TABLE `restaurant` ADD COLUMN wechat_appid varchar(32);
+ALTER TABLE `restaurant` ADD COLUMN ali_mchid varchar(32);
+ALTER TABLE `restaurant` ADD COLUMN ali_appid varchar(32);
+UPDATE total_statistics SET db_version='20151215';
+************************************************************
+版本：			V15.09.10.20
+发布日期：	2015-9-10
+************************************************************
+INSERT INTO macros VALUES ('51', 'REPRICE_TOTAL', '1', '菜品改价：0-改单价  1-直接改总价');
+INSERT INTO macros VALUES ('52', 'OPEN_TABLE_GUEST', '0', '开台输入人数效果: 0-默认 1-不显示人数输入框 2-人数强制输入，不能为零');
+INSERT INTO macros VALUES ('53', 'PRINT_VOID_PAY', '0', '结帐单打印退菜：0-不打印  1-打印');
+ALTER TABLE `payment` add COLUMN wechat_id varchar(32);
+UPDATE total_statistics SET db_version='20150910';
+************************************************************
+版本：			V15.03.06.20
+发布日期：	2015-3-6
+************************************************************
+INSERT INTO macros VALUES ('47', 'NO_SEND_HINT', '0', '未送厨时是否提示：0-提示  1-不提示');
+INSERT INTO macros VALUES ('48', 'SHOW_CONSUMPTION_LIMIT', '0', '开台时是否显示最低消费提示：0-不显示  1-显示');
+INSERT INTO macros VALUES ('49', 'SHIFT_MAJORSALES', '0', '在交班报表中显示大类销售统计，用于奶茶店');
+INSERT INTO macros VALUES ('50', 'SHOW_ITEM_NAME', '0', '菜名显示效果： 0-显示名称1+名称2；1-仅显示名称1；2-仅显示名称2');
+ALTER TABLE `customer_display` ADD COLUMN type INT DEFAULT 0;
+ALTER TABLE `order_head` ADD COLUMN raw_talbe INT DEFAULT 0;
+ALTER TABLE `history_order_head` ADD COLUMN raw_talbe INT DEFAULT 0;
+************************************************************
+版本：			V14.09.10.20
+发布日期：	2014-9-10
+************************************************************
+INSERT INTO macros VALUES ('45', 'COMBINE_CONDIMENT', '0', '带价格调味品打印时合并到菜品备注：0-不合并  1-合并');
+INSERT INTO macros VALUES ('46', 'FOOD_COURT', '0', '');
+DROP TABLE IF EXISTS `tax_primary`;
+CREATE TABLE `tax_primary` (
+  `tax_id` int(11) DEFAULT '-1',
+  `tax_name` varchar(20) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  `include_service` int(11) DEFAULT '0',
+  `round` int(11) DEFAULT '0',
+  `tax_type`  int(11) NULL DEFAULT NULL ,
+  `start_amount`  decimal(11,2) NULL DEFAULT NULL ,
+  `end_amount`  decimal(11,2) NULL DEFAULT NULL ,
+  PRIMARY KEY (`tax_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+UPDATE restaurant SET currency_name=(SELECT macros_value FROM macros WHERE macros_name='CURRENCY');
+UPDATE restaurant SET decimal_places=(SELECT macros_value FROM macros WHERE macros_name='DECIMAL_PLACES');
+************************************************************
+版本：			V14.06.16.20
+发布日期：	2014-6-16
+************************************************************
+ALTER TABLE `order_head` add COLUMN tax_amount decimal(11,2);
+ALTER TABLE `history_order_head` add COLUMN tax_amount decimal(11,2);
+ALTER TABLE `menu_item` ADD COLUMN is_time_price TINYINT DEFAULT 0;
+ALTER TABLE `menu_item` ADD COLUMN price_per_minute INT DEFAULT 60;
+INSERT INTO `report` VALUES(61,'服务费统计',1,1,0,0,-1,'report\\service_total.rpt');
+INSERT INTO `report_1` VALUES(61,'Service Charge Total',1,1,0,0,-1,'report_1\\service_total.rpt');
+INSERT INTO `report_2` VALUES(61,'服務費統計',1,1,0,0,-1,'report_2\\service_total.rpt');
+************************************************************
+版本：			V14.03.12.20
+发布日期：	2014-3-12
+************************************************************
+-- ----------------------------
+-- Table structure for `price_scheme`
+-- ----------------------------
+DROP TABLE IF EXISTS `price_scheme`;
+CREATE TABLE `price_scheme` (
+  `menu_item_id` int(11) NOT NULL DEFAULT '0',
+  `menu_item_name` varchar(20) DEFAULT NULL,
+  `item_price` double DEFAULT NULL,
+  `disable` int(11) DEFAULT '0',
+  `group_id` int(11) DEFAULT '-1',
+  PRIMARY KEY (`menu_item_id`, `group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `price_scheme_group`
+-- ----------------------------
+DROP TABLE IF EXISTS `price_scheme_group`;
+CREATE TABLE `price_scheme_group` (
+  `group_id` int(11) NOT NULL,
+  `group_name` varchar(300) DEFAULT NULL,
+  `period_class` int(11) DEFAULT '-1',
+  `place_class` int(11) DEFAULT '-1',
+  `is_discount` int(11) DEFAULT '0',
+  `is_service` int(11) DEFAULT '0',
+  PRIMARY KEY (`group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Records of price_scheme_group
+-- ----------------------------
+INSERT INTO price_scheme_group VALUES ('1', '方案1', '-1', '-1', '0', '0');
+INSERT INTO price_scheme_group VALUES ('2', '方案2', '-1', '-1', '0', '0');
+INSERT INTO price_scheme_group VALUES ('3', '方案3', '-1', '-1', '0', '0');
+INSERT INTO price_scheme_group VALUES ('4', '方案4', '-1', '-1', '0', '0');
+INSERT INTO macros VALUES ('43', 'NOT_PRINT_FREEITEM', '0', '不打印单价为0菜品：0-  1-不打印');
+INSERT INTO macros VALUES ('44', 'NO_SOLDOUT_ITEM', '0', '沽清菜品不可点：0-提示  1-不可点');
+DROP TRIGGER trigger_order_detail_add;
+CREATE TRIGGER `trigger_order_detail_add` BEFORE INSERT ON `order_detail` FOR EACH ROW BEGIN 
+if NEW.order_detail_id IS NULL then
+	set NEW.order_time=now();
+UPDATE total_statistics SET db_version='20140312';
+************************************************************
+版本：			V7.7.0.1550
+发布日期：	2014-01-15
+************************************************************
+INSERT INTO report VALUES ('100', '外卖菜品销售明细', '5', '1', '0', '0', '-1', 'report\\take_out_details.rpt');
+UPDATE employee_class set authority_12=100;
+ALTER TABLE `order_head` add COLUMN delivery_info varchar(100);
+ALTER TABLE `history_order_head` add COLUMN delivery_info varchar(100);
+ALTER TABLE `order_detail` add COLUMN is_make INT;
+ALTER TABLE `history_order_detail` add COLUMN is_make INT;
+ALTER TABLE `order_head` ADD COLUMN kds_show INT DEFAULT 0;
+ALTER TABLE `order_head` ADD COLUMN kds_time datetime;
+ALTER TABLE `history_order_head` ADD COLUMN kds_show INT DEFAULT 0;
+ALTER TABLE `history_order_head` ADD COLUMN kds_time datetime;
+DROP TABLE IF EXISTS `history_time_clock`;
+CREATE TABLE `history_time_clock` (
+  `time_clock_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `employee_id` int(11) DEFAULT NULL,
+  `job_id` int(11) DEFAULT NULL,
+  `clock_in_time` datetime DEFAULT NULL,
+  `clock_out_time` datetime DEFAULT NULL,
+  `duration` time DEFAULT NULL,
+  `override_in_early` int(11) DEFAULT NULL,
+  `override_in_late` int(11) DEFAULT NULL,
+  `override_out_early` int(11) DEFAULT NULL,
+  `override_out_late` int(11) DEFAULT NULL,
+  PRIMARY KEY (`time_clock_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+INSERT INTO report VALUES ('141', '员工考勤表', '6', '', '', '', '0', 'report\\employee_clock.rpt');
+UPDATE total_statistics SET db_version='20140115';
+************************************************************
+版本：			V7.6.0.1476
+发布日期：	2013-11-25
+************************************************************
+INSERT INTO macros VALUES ('40', 'PRINT_WEBVIPID', '0', '会员打折卡打印卡号：0-不打印  1-打印');
+INSERT INTO macros VALUES ('41', 'MAP_ENGINE', 'http://api.map.baidu.com/geocoder?output=html&src=coolroid&address=', '地图搜索URL');
+INSERT INTO macros VALUES ('42', 'NOT_CLEAN_TABLE', '0', '付款后是否自动清台：0-清台  1-不清台');
+ALTER TABLE `total_statistics` add COLUMN dayend_time datetime;
+UPDATE total_statistics SET dayend_time=now();
+UPDATE total_statistics SET db_version='20131128';
+************************************************************
+版本：			V7.5.0.1366
+发布日期：	2013-10-18
+************************************************************
+INSERT INTO macros VALUES ('36', 'TABLE_UPDATE_TIMER', '10', '桌台界面刷新间隔时间(秒)');
+INSERT INTO macros VALUES ('37', 'PRINT_SERVICE_DETAIL', '1', '收银小票是否打印服务费明细');
+INSERT INTO macros VALUES ('38', 'DZDP_ID', '0', '大众点评ID');
+INSERT INTO macros VALUES ('39', 'NO_AUTO_CUSTOMER', '0', '外卖单是否自动弹出常客：0-自动弹出  1-不自动');
+ALTER TABLE `total_statistics` add COLUMN db_version varchar(10);
+UPDATE total_statistics SET db_version='20131018';
+************************************************************
+版本：			V7.4.0.1280
+发布日期：	2013-9-18
+************************************************************
+INSERT INTO macros VALUES ('31', 'DECIMAL_PLACES', '1', '精确到小数点后几位');
+INSERT INTO macros VALUES ('32', 'NO_AUTO_CLOSECHK', '0', '是否自动关闭空白账单  0-自动 1-不自动');
+INSERT INTO macros VALUES ('33', 'PRINTCHK_TWICE', '0', '收银小票打印次数：0 -1次；1 -2次；2 -提示是否打印');
+INSERT INTO macros VALUES ('34', 'NOPRINT_PDA', '0', 'PDA点菜配置为不送厨');
+INSERT INTO macros VALUES ('35', 'AUTO_PRINT_ORDER', '0', '送厨后自动打印划菜单');
+INSERT INTO report VALUES(130,'套餐销售明细',5,1,0,0,-1,'report\\course_sale_detail.rpt');
+************************************************************
+版本：			V7.2.0.1256
+发布日期：	2013-7-12
+************************************************************
+-- ----------------------------
+-- Table structure for `dcb_order`
+-- ----------------------------
+DROP TABLE IF EXISTS `dcb_order`;
+CREATE TABLE `dcb_order` (
+  `order_head_id` int(11) NOT NULL,
+  `time_diff` varchar(30) DEFAULT NULL,
+  `dcb_id` varchar(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `user_dcb`;
+CREATE TABLE `user_dcb` (
+  `dcb_id` int(11) NOT NULL AUTO_INCREMENT,
+  `workstations_id` int(11) NOT NULL,
+  `dcb_name` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`dcb_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+************************************************************
+版本：			V7.1.0.1056
+发布日期：	2013-6-19
+************************************************************
+-- ----------------------------
+-- Table structure for `total_statistics`
+-- ----------------------------
+DROP TABLE IF EXISTS `total_statistics`;
+CREATE TABLE `total_statistics` (
+  `total_checks` int(11) NOT NULL DEFAULT '0',
+  `total_guests` int(11) NOT NULL DEFAULT '0',
+  `install_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of total_statistics
+-- ----------------------------
+INSERT INTO total_statistics VALUES ('0', '0', now());
+ALTER TABLE `order_head` add COLUMN is_make INT;
+ALTER TABLE `history_order_head` add COLUMN is_make INT;
+************************************************************
+版本：			V7.0.0.989
+发布日期：	2013-5-15
+************************************************************
+INSERT INTO macros VALUES ('28', 'CARD_REGEX', '0\\d+', '员工卡的识别正则表达式。请用户不要更改！');
+INSERT INTO macros VALUES ('29', 'SHOW_ITEM_ID', '1', '点菜界面显示菜品ID');
+INSERT INTO macros VALUES ('30', 'DISCOUNT_TYPE', '0', '折扣类型限制：\n0 :只能有一个整单折扣\n1 :只能有一个折扣\n 2：不限制折扣');
+
+ALTER TABLE `macros_key` ADD COLUMN key_id INT PRIMARY KEY ;
+ALTER TABLE `macros_key` ADD COLUMN is_syc bit(1);
+ALTER TABLE `order_head` add COLUMN remark varchar(50);
+ALTER TABLE `history_order_head` add COLUMN remark varchar(50);
+ALTER TABLE `tender_media` ADD COLUMN extra_amout FLOAT DEFAULT 0;
+ALTER TABLE `customer_consume` ADD COLUMN device_id INT DEFAULT NULL;
+-- ----------------------------
+-- Table structure for `cashbox_in_out`
+-- ----------------------------
+DROP TABLE IF EXISTS `cashbox_in_out`;
+CREATE TABLE `cashbox_in_out` (
+  `in_out_id` int(11) NOT NULL AUTO_INCREMENT,
+  `cashbox_id` int(11) DEFAULT NULL,
+  `type` int(11) DEFAULT NULL,
+  `cash_amount` decimal(11,2) DEFAULT NULL,
+  `in_out_time` datetime DEFAULT NULL,
+  `employee_id` int(11) DEFAULT NULL,
+  `employee_name` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`in_out_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `critical_operations`
+-- ----------------------------
+DROP TABLE IF EXISTS `critical_operations`;
+CREATE TABLE `critical_operations` (
+  `operation_id` int(11) NOT NULL AUTO_INCREMENT,
+  `operation_type` int(11) DEFAULT NULL,
+  `device_id` int(11) DEFAULT NULL,
+  `order_head_id` int(11) DEFAULT NULL,
+  `employee_id` int(11) DEFAULT NULL,
+  `employee_name` varchar(30) DEFAULT NULL,
+  `operation_time` datetime DEFAULT NULL,
+  `operation_name` varchar(30) DEFAULT NULL,
+  `operation_detail` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`operation_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Table structure for `critical_operation_type`
+-- ----------------------------
+DROP TABLE IF EXISTS `critical_operation_type`;
+CREATE TABLE `critical_operation_type` (
+  `operation_type_id` int(11) DEFAULT NULL,
+  `operation_type_name` varchar(30) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of critical_operation_type
+-- ----------------------------
+INSERT INTO critical_operation_type VALUES ('0', '未知类型');
+INSERT INTO critical_operation_type VALUES ('1', '赠送');
+INSERT INTO critical_operation_type VALUES ('2', '改价');
+INSERT INTO critical_operation_type VALUES ('3', '退菜');
+INSERT INTO critical_operation_type VALUES ('4', '反结账');
+INSERT INTO critical_operation_type VALUES ('5', '转台');
+INSERT INTO critical_operation_type VALUES ('6', '合台\\合单');
+INSERT INTO critical_operation_type VALUES ('7', '退款');
+INSERT INTO critical_operation_type VALUES ('8', '交接班');
+INSERT INTO critical_operation_type VALUES ('9', '日结');
+
+************************************************************
+版本：			V6.9.0.900
+发布日期：	2013-3-20
+************************************************************
+INSERT INTO macros VALUES ('25', 'PAYMENT_CHANGE_TIME', '8', '提示找零的时间(秒)，小于等于0则不倒计时');
+INSERT INTO macros VALUES ('26', 'CURRENCY', '￥', '货币符号');
+INSERT INTO macros VALUES ('27', 'SALES_REPORT_TYPE', '111', '前台销售总结报表内容,每一位为1表示开启报表\n个位: 分段销量\n十位: 大类销量\n百位: 部门销量');
+DROP TABLE IF EXISTS `test_db`;
+CREATE TABLE `test_db` (
+  `datenow` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+INSERT INTO test_db VALUES ('2013-03-15 10:58:40');
+-- ----------------------------
+-- Table structure for `macros_key`
+-- ----------------------------
+DROP TABLE IF EXISTS `macros_key`;
+CREATE TABLE `macros_key` (
+  `key_str` varchar(200) DEFAULT NULL,
+  `install_date` blob
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of macros_key
+-- ----------------------------
+INSERT INTO macros_key VALUES ('', 0xA2DD9D56A266C8153F46E1CC841C935B);
+************************************************************
+版本：			V6.8.0.850
+发布日期：	2013-1-25
+************************************************************
+ALTER TABLE `customer_consume` add COLUMN web_id INT;
+ALTER TABLE `order_head` add COLUMN edit_time datetime;
+ALTER TABLE `history_order_head` add COLUMN edit_time datetime;
+ALTER TABLE `order_head` add COLUMN party_id INT;
+ALTER TABLE `history_order_head` add COLUMN party_id INT;
+ALTER TABLE `order_head` add COLUMN edit_employee_name varchar(30);
+ALTER TABLE `history_order_head` add COLUMN edit_employee_name varchar(30);
+ALTER TABLE `order_detail` add COLUMN discount_price float;
+ALTER TABLE `history_order_detail` add COLUMN discount_price float;
+ALTER TABLE `order_detail` add COLUMN sales_amount float;
+ALTER TABLE `history_order_detail` add COLUMN sales_amount float;
+ALTER TABLE `tables` add COLUMN party_table varchar(30);
+INSERT INTO macros VALUES ('24', 'PRINT_ALLMAKEITEM', '0', '划菜单是否打印整单菜品\n 0 -不打印   1 -打印');
+INSERT INTO report VALUES(31,'菜品畅销销售统计',4,1,0,0,-1,'report\\item_sales_desc.rpt');
+-- ----------------------------
+-- Table structure for `item_unit`
+-- ----------------------------
+DROP TABLE IF EXISTS `item_unit`;
+CREATE TABLE `item_unit` (
+  `unit_id` int(11) NOT NULL AUTO_INCREMENT,
+  `unit_name` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`unit_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Records of item_unit
+-- ----------------------------
+INSERT INTO item_unit VALUES ('1', '例');
+INSERT INTO item_unit VALUES ('2', '位');
+INSERT INTO item_unit VALUES ('3', '碗');
+INSERT INTO item_unit VALUES ('4', '条');
+INSERT INTO item_unit VALUES ('5', '只');
+INSERT INTO item_unit VALUES ('6', '半只');
+INSERT INTO item_unit VALUES ('7', '斤');
+INSERT INTO item_unit VALUES ('8', '一打');
+INSERT INTO item_unit VALUES ('9', '半打');
+INSERT INTO item_unit VALUES ('10', '个');
+INSERT INTO item_unit VALUES ('11', '份');
+INSERT INTO item_unit VALUES ('12', '笼');
+INSERT INTO item_unit VALUES ('13', '件');
+INSERT INTO item_unit VALUES ('14', '听');
+INSERT INTO item_unit VALUES ('15', '瓶');
+INSERT INTO item_unit VALUES ('16', '杯');
+INSERT INTO item_unit VALUES ('17', '扎');
+INSERT INTO item_unit VALUES ('18', '大扎');
+INSERT INTO item_unit VALUES ('19', '小扎');
+INSERT INTO item_unit VALUES ('20', '盒');
+INSERT INTO item_unit VALUES ('21', '球');
+INSERT INTO item_unit VALUES ('22', '壶');
+INSERT INTO item_unit VALUES ('23', '大壶');
+INSERT INTO item_unit VALUES ('24', '中壶');
+INSERT INTO item_unit VALUES ('25', '小壶');
+INSERT INTO item_unit VALUES ('26', '套');
+INSERT INTO item_unit VALUES ('27', '热');
+INSERT INTO item_unit VALUES ('28', '冷');
+INSERT INTO item_unit VALUES ('29', '大');
+INSERT INTO item_unit VALUES ('30', '中');
+INSERT INTO item_unit VALUES ('31', '小');
+
+DROP TABLE IF EXISTS `webreport_setting`;
+CREATE TABLE `webreport_setting` (
+  `cr_url` varchar(200) DEFAULT NULL,
+  `cr_port` int(11) DEFAULT '2003',
+  `cr_res_id` varchar(50) DEFAULT NULL,
+  `cr_res_pwd` varchar(50) DEFAULT NULL,
+  `cr_last_endtime` datetime DEFAULT NULL,
+  `cr_last_time` datetime DEFAULT NULL,
+  `tender_media` int(11) DEFAULT '1',
+  `major_group` int(11) DEFAULT '1',
+  `family_group` int(11) DEFAULT '1',
+  `rvc_center` int(11) DEFAULT '1',
+  `periods` int(11) DEFAULT '1',
+  `employee` int(11) DEFAULT '1',
+  `menu_item` int(11) DEFAULT '1',
+  `tables` int(11) DEFAULT '1',
+  `res_info` int(11) DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Records of webreport_setting
+-- ----------------------------
+INSERT INTO webreport_setting VALUES ('www.coolroid.com', '2003', '0001', '1', now(), now(), '1', '1', '1', '1', '1', '1', '1', '1', '1');
+-- ----------------------------
+-- Table structure for `parties_type`
+-- ----------------------------
+DROP TABLE IF EXISTS `parties_type`;
+CREATE TABLE `parties_type` (
+  `party_type_id` int(11) NOT NULL DEFAULT '0',
+  `party_type_name` varchar(200) DEFAULT NULL,
+  `msg_template` varchar(500) DEFAULT '',
+  PRIMARY KEY (`party_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of parties_type
+-- ----------------------------
+INSERT INTO parties_type VALUES ('0', '桌台预订', '您好，#CustomerName#,您已成功预订，预订房台为#TblName#,预订席数为#TblNum#,备用席数为安师大aaa#BackTblNum#,每桌价格：#PricePerTbl#,预付订金：#Prepay#,备注：#Remark#,客户电话：#CustomerTel#,开席时间#ArriveTime#,预订名称：#OrderName#。');
+INSERT INTO parties_type VALUES ('1', '婚宴', '您好，#CustomerName#，您已在深圳库瑞德餐厅成功预订婚宴，预订席数为#TblNum#，备用席数为#BackTblNum#，开席时间为#ArriveTime#，请您提前半小时抵达。');
+INSERT INTO parties_type VALUES ('2', '生日宴会', '您好，#CustomerName#,您已成功预订，预订房台为#TblName#,预订席数为#TblNum#,备用席数为aaa#BackTblNum#,每桌价格：#PricePerTbl#,预付订金：#Prepay#,备注：#Remark#,客户电话：#CustomerTel#,开席时间#ArriveTime#,预订名称：#OrderName#。');
+INSERT INTO parties_type VALUES ('3', '会议', '#CustomerName#您好，您已在深圳库瑞德餐厅成功预订婚宴，预订席数为#TblNum#，备用席数为#BackTblNum#，开席时间为#ArriveTime#，请您提前半小时抵达。');
+INSERT INTO parties_type VALUES ('4', '教师宴', '您好，#CustomerName#,您已成功预订，预订房台为#TblName#,预订席数为#TblNum#,备用席数为#BackTblNum#,每桌价格：#PricePerTbl#,预付订金：#Prepay#,备注：#Remark#,客户电话：#CustomerTel#,开席时间#ArriveTime#,预订名称：#OrderName#。');
+INSERT INTO parties_type VALUES ('5', '年终宴会', '您好，#CustomerName#,您已成功预订，预订房台为#TblName#,预订席数为#TblNum#,备用席数为#BackTblNum#,每桌价格：#PricePerTbl#,预付订金：#Prepay#,备注：#Remark#,客户电话：#CustomerTel#,开席时间#ArriveTime#,预订名称：#OrderName#。');
+INSERT INTO parties_type VALUES ('10', '其他', '您好，#CustomerName#,您已成功预订，预订房台为#TblName#,预订席数为#TblNum#,备用席数为#BackTblNum#,每桌价格：#PricePerTbl#,预付订金：#Prepay#,备注：#Remark#,客户电话#CustomerTel#,开席时间#ArriveTime#,预订名称：#OrderName#。');
+-- ----------------------------
+-- Table structure for `vip_setting`
+-- ----------------------------
+DROP TABLE IF EXISTS `vip_setting`;
+CREATE TABLE `vip_setting` (
+  `setting_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip_addr` varchar(60) DEFAULT NULL,
+  `port` int(11) DEFAULT '8000',
+  `res_id` varchar(30) DEFAULT NULL,
+  `res_pwd` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`setting_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Records of vip_setting
+-- ----------------------------
+INSERT INTO vip_setting VALUES ('1', '', '8000', '1', '123');
+-- ----------------------------
+-- Table structure for `parties`
+-- ----------------------------
+DROP TABLE IF EXISTS `parties`;
+CREATE TABLE `parties` (
+  `party_id` int(11) NOT NULL AUTO_INCREMENT,
+  `party_name` varchar(200) DEFAULT NULL,
+  `status` int(11) DEFAULT '0',
+  `party_type` int(11) DEFAULT '0',
+  `table_num` int(11) DEFAULT '0',
+  `back_table_num` int(11) DEFAULT '0',
+  `table_price` decimal(11,2) DEFAULT NULL,
+  `remark` varchar(300) DEFAULT NULL,
+  `contract_id` varchar(100) DEFAULT NULL,
+  `pre_amount` decimal(11,2) DEFAULT NULL,
+  `amount` decimal(11,2) DEFAULT NULL,
+  `sale_employee` int(11) DEFAULT '-1',
+  `customer_name` varchar(100) DEFAULT NULL,
+  `customer_tel` varchar(100) DEFAULT NULL,
+  `party_time` datetime DEFAULT NULL,
+  `insert_time` datetime DEFAULT NULL,
+  `update_time` datetime DEFAULT NULL,
+  `insert_employee` int(11) DEFAULT '-1',
+  `update_employee` int(11) DEFAULT '-1',
+  `customer_id` int(11) DEFAULT NULL,
+  `table_str` varchar(500) DEFAULT NULL,
+  `cus_num` int(11) DEFAULT '1',
+  PRIMARY KEY (`party_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `parties_type`
+-- ----------------------------
+DROP TABLE IF EXISTS `parties_type`;
+CREATE TABLE `parties_type` (
+  `party_type_id` int(11) NOT NULL DEFAULT '0',
+  `party_type_name` varchar(200) DEFAULT NULL,
+  `msg_template` varchar(500) DEFAULT '',
+  PRIMARY KEY (`party_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `party_default_remark`
+-- ----------------------------
+DROP TABLE IF EXISTS `party_default_remark`;
+CREATE TABLE `party_default_remark` (
+  `remark_id` int(11) NOT NULL AUTO_INCREMENT,
+  `remark_title` varchar(100) DEFAULT NULL,
+  `remark_content` varchar(800) DEFAULT NULL,
+  PRIMARY KEY (`remark_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of party_default_remark
+-- ----------------------------
+INSERT INTO party_default_remark VALUES ('1', '备注：', '    1、请在大堂及宾馆门口放置指示牌。\r\n    2、宴会厅内提供签到台、签到本、签到笔，详细场地布置见婚宴细节确认表\r\n');
+INSERT INTO party_default_remark VALUES ('2', '出品部： ', '    1、菜单后附。\r\n    2、冷菜上菜时间: 待定 ,热菜上菜时间: 待定 。 ');
+INSERT INTO party_default_remark VALUES ('3', '财务部： ', '    1、客人已交纳10000定金，婚宴结束后结清所有款项。');
+
+-- ----------------------------
+-- Table structure for `party_item`
+-- ----------------------------
+DROP TABLE IF EXISTS `party_item`;
+CREATE TABLE `party_item` (
+  `party_item_id` int(11) NOT NULL AUTO_INCREMENT,
+  `party_id` int(11) DEFAULT NULL,
+  `menu_item_id` int(11) DEFAULT NULL,
+  `item_course_name` varchar(200) DEFAULT NULL,
+  `unit` varchar(100) DEFAULT NULL,
+  `num` decimal(11,2) DEFAULT NULL,
+  `price` decimal(11,2) DEFAULT NULL,
+  `description` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`party_item_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `party_remark`
+-- ----------------------------
+DROP TABLE IF EXISTS `party_remark`;
+CREATE TABLE `party_remark` (
+  `remark_id` int(11) NOT NULL AUTO_INCREMENT,
+  `party_id` int(11) DEFAULT NULL,
+  `remark_title` varchar(100) DEFAULT NULL,
+  `remark_content` varchar(800) DEFAULT NULL,
+  PRIMARY KEY (`remark_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `party_table`
+-- ----------------------------
+DROP TABLE IF EXISTS `party_table`;
+CREATE TABLE `party_table` (
+  `party_id` int(11) NOT NULL DEFAULT '0',
+  `table_id` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`party_id`,`table_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `messages_template_item`
+-- ----------------------------
+DROP TABLE IF EXISTS `messages_template_item`;
+CREATE TABLE `messages_template_item` (
+  `message_tempitem_id` int(11) NOT NULL DEFAULT '0',
+  `message_tempitem_name` varchar(50) DEFAULT '',
+  `message_tempitem_content` varchar(50) DEFAULT '',
+  `column_value` varchar(100) DEFAULT '',
+  `type` int(11) DEFAULT '0',
+  PRIMARY KEY (`message_tempitem_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of messages_template_item
+-- ----------------------------
+INSERT INTO messages_template_item VALUES ('1', '预订名称', '#OrderName#', '', '0');
+INSERT INTO messages_template_item VALUES ('2', '开席时间', '#ArriveTime#', '', '0');
+INSERT INTO messages_template_item VALUES ('3', '客户名称', '#CustomerName#', '', '0');
+INSERT INTO messages_template_item VALUES ('4', '客户电话', '#CustomerTel#', '', '0');
+INSERT INTO messages_template_item VALUES ('5', '预订房台', '#TblName#', '', '0');
+INSERT INTO messages_template_item VALUES ('6', '预订席数', '#TblNum#', '', '0');
+INSERT INTO messages_template_item VALUES ('7', '备用席数', '#BackTblNum#', '', '0');
+INSERT INTO messages_template_item VALUES ('8', '预付订金', '#Prepay#', '', '0');
+INSERT INTO messages_template_item VALUES ('9', '每桌价格', '#PricePerTbl#', '', '0');
+INSERT INTO messages_template_item VALUES ('10', '备注', '#Remark#', '', '0');
+************************************************************
+版本：			V6.7.0.754
+发布日期：	2012-12-10
+************************************************************
+ALTER TABLE `order_detail` add COLUMN seat_num INT;
+ALTER TABLE `history_order_detail` add COLUMN seat_num INT;
+ALTER TABLE restaurant ADD COLUMN is_input_chk INT DEFAULT 0;
+ALTER TABLE restaurant ADD COLUMN auto_send_type INT DEFAULT 0;
+ALTER TABLE restaurant ADD COLUMN db_back_folder VARCHAR(500);
+INSERT INTO tables(table_id,table_name,rvc_center_id) VALUES ('-1', '快餐', 1);
+INSERT INTO macros VALUES ('23', 'PRINT_VIPINFO', '1', '0 -不打印   1 -结帐单打印会员信息');
+************************************************************
+版本：			V6.6.0.998
+发布日期：	2012-11-16
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+ALTER TABLE `restaurant` MODIFY location_name_2 VARCHAR(300);
+INSERT INTO macros(macros_id,macros_name,macros_value,remark) 
+VALUES(21,'SYNC_PAD_PDA','0','在编辑菜单后是否同步到平板和PDA\r\n0：不同步\r\n1:同步');
+INSERT INTO macros(macros_id,macros_name,macros_value,remark) 
+VALUES(22,'USE_SALE_TIME','1','是否使用营业开始时间\r\n0：不使用，每天时间从0:00:00到23:59:59\r\n1:使用，每天时间从第一天的开始时间到第二天的开始时间');
+DROP TABLE IF EXISTS `inventory_setting`;
+CREATE TABLE `inventory_setting` (
+  `setting_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip_addr` varchar(60) DEFAULT NULL,
+  `port` int(11) DEFAULT '8000',
+  PRIMARY KEY (`setting_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of inventory_setting
+-- ----------------------------
+INSERT INTO inventory_setting VALUES ('1', '', '8000');
+************************************************************
+版本：			V6.6.0.996
+发布日期：	2012-11-16
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+update service_tip set category=1 where category=0;
+update tables set rvc_center_id=1 where rvc_center_id=-1;
+ALTER TABLE menu_item add COLUMN tax_group INT DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu add COLUMN tax_group INT DEFAULT -1;
+
+
+DROP TABLE IF EXISTS `course_detail`;
+CREATE TABLE `course_detail` (
+  `detail_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_group_id` int(11) NOT NULL DEFAULT '0',
+  `menu_item_id` int(11) NOT NULL DEFAULT '0',
+  `item_course_name` varchar(200) DEFAULT NULL,
+  `unit` varchar(100) DEFAULT NULL,
+  `num` float DEFAULT '1',
+  `price` float DEFAULT '0',
+  `description` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`detail_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `course_group`;
+CREATE TABLE `course_group` (
+  `course_group_id` int(11) NOT NULL DEFAULT '0',
+  `course_group_name` varchar(40) DEFAULT NULL,
+  `menu_item_id` int(11) DEFAULT NULL,
+  `is_must` int(11) DEFAULT NULL,
+  `choose_num` int(11) DEFAULT NULL,
+  `slu_id` int(11) DEFAULT -1,
+  PRIMARY KEY (`course_group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `practice`;
+CREATE TABLE `practice` (
+  `practice_id` int(11) NOT NULL AUTO_INCREMENT,
+  `practice_name` varchar(300) DEFAULT NULL,
+  `practice_group` int(11) DEFAULT NULL,
+  PRIMARY KEY (`practice_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `practice_group`;
+CREATE TABLE `practice_group` (
+  `practice_group_id` int(11) NOT NULL DEFAULT '0',
+  `practice_group_name` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`practice_group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `tax`;
+CREATE TABLE `tax` (
+  `tax_id` int(11) NOT NULL DEFAULT '0',
+  `tax_name` varchar(300) DEFAULT NULL,
+  `tax_group` int(11) DEFAULT NULL,
+  `display_name` varchar(300) DEFAULT NULL,
+  `tax_type` int(11) DEFAULT NULL,
+  `amount` decimal(11,2) DEFAULT NULL,
+  `start_amount` decimal(11,2) DEFAULT NULL,
+  `end_amount` decimal(11,2) DEFAULT NULL,
+  PRIMARY KEY (`tax_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `tax_group`;
+CREATE TABLE `tax_group` (
+  `tax_group_id` int(11) NOT NULL DEFAULT '0',
+  `tax_group_name` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`tax_group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `tax_type`;
+CREATE TABLE `tax_type` (
+  `tax_type_id` int(11) NOT NULL,
+  `tax_type_name` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`tax_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO tax_type VALUES ('0', '比例');
+INSERT INTO tax_type VALUES ('1', '金额');
+INSERT INTO tax_type VALUES ('2', '已包含');
+INSERT INTO macros VALUES ('17', 'PRINT_CONDIMENT', '0', '0 -结帐单不打印配料   1 -打印配料');
+INSERT INTO macros VALUES ('18', 'FORCE_MINLIMIT', '1', '消费限制是否强制 0 -否   1 -是');
+INSERT INTO macros VALUES ('19', 'PAYMENT_ORDER', '0', '结账单菜品打印顺序 0 -点菜顺序   1 -按大类排序 2 -菜品价格排序');
+INSERT INTO macros VALUES ('20', 'SENDITEM_ORDER', '0', '送厨单菜品打印顺序 0 -点菜顺序   1 -按报表子类分类');
+update report set report_name = '调味品' where report_id=54;
+update tables set rvc_center_id=1 where rvc_center_id=-1;
+
+ALTER table descriptors_menu_item_slu ADD COLUMN commission_type  INT DEFAULT 0;
+ALTER table descriptors_menu_item_slu ADD COLUMN commission_value  FLOAT DEFAULT 0;
+ALTER table rvc_center ADD COLUMN consumption_limit INT DEFAULT -1;
+ALTER table rvc_center ADD COLUMN row_menu_printer INT DEFAULT -1;
+ALTER table `tables` ADD COLUMN row_menu_printer INT DEFAULT -1;
+-- -------------
+-- Table structure for `history_day_end`
+-- ----------------------------
+DROP TABLE IF EXISTS `history_day_end`;
+CREATE TABLE `history_day_end` (
+  `history_day_end_id` int(11) NOT NULL AUTO_INCREMENT,
+  `day` date NOT NULL,
+  `rvc_center_id` int(11) NOT NULL,
+  `period_id` int(11) NOT NULL,
+  `eidt_time` datetime DEFAULT NULL,
+  `sales_amount` decimal(11,2) DEFAULT NULL,
+  `discount_amount` decimal(11,2) DEFAULT NULL,
+  `service_amount` decimal(11,2) DEFAULT NULL,
+  `return_amount` decimal(11,2) DEFAULT NULL,
+  `should_amount` decimal(11,2) DEFAULT NULL,
+  `actual_amount` decimal(11,2) DEFAULT NULL,
+  `eatin_amount` decimal(11,2) DEFAULT NULL,
+  `out_amount` decimal(11,2) DEFAULT NULL,
+  `invoice_amount` decimal(11,2) DEFAULT NULL,
+  `tax_amount` decimal(11,2) DEFAULT NULL,
+  `customer_num` int(11) DEFAULT NULL,
+  `chk_num` int(11) DEFAULT NULL,
+  `table_num` int(11) DEFAULT NULL,
+  PRIMARY KEY (`history_day_end_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `history_major_group`
+-- ----------------------------
+DROP TABLE IF EXISTS `history_major_group`;
+CREATE TABLE `history_major_group` (
+  `history_major_id` int(11) NOT NULL AUTO_INCREMENT,
+  `day` date NOT NULL,
+  `rvc_center_id` int(11) NOT NULL,
+  `period_id` int(11) NOT NULL,
+  `major_group_id` int(11) DEFAULT NULL,
+  `amount` decimal(11,2) DEFAULT NULL,
+  PRIMARY KEY (`history_major_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `history_payment`
+-- ----------------------------
+DROP TABLE IF EXISTS `history_payment`;
+CREATE TABLE `history_payment` (
+  `history_payment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `day` date NOT NULL,
+  `rvc_center_id` int(11) NOT NULL,
+  `period_id` int(11) NOT NULL,
+  `payment_id` int(11) DEFAULT NULL,
+  `amount` decimal(11,2) DEFAULT NULL,
+  PRIMARY KEY (`history_payment_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `history_messages`
+-- ----------------------------
+DROP TABLE IF EXISTS `history_messages`;
+CREATE TABLE `history_messages` (
+  `history_message_id` int(11) NOT NULL AUTO_INCREMENT,
+  `tel` varchar(50) DEFAULT NULL,
+  `message_content` varchar(1000) DEFAULT NULL,
+  `send_time` datetime DEFAULT NULL,
+  `actual_time` datetime DEFAULT NULL,
+  `type` int(11) DEFAULT '0',
+  `status` int(11) DEFAULT '0',
+  `user_id` int(11) DEFAULT NULL,
+  `sender` int(11) DEFAULT NULL,
+  `extend_1` int(11) DEFAULT NULL,
+  `extend_2` varchar(300) DEFAULT NULL,
+  `extend_3` varchar(300) DEFAULT NULL,
+  `extend_4` varchar(300) DEFAULT NULL,
+  `extend_5` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`history_message_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `messages`
+-- ----------------------------
+DROP TABLE IF EXISTS `messages`;
+CREATE TABLE `messages` (
+  `message_id` int(11) NOT NULL AUTO_INCREMENT,
+  `tel` varchar(50) DEFAULT NULL,
+  `message_content` varchar(1000) DEFAULT NULL,
+  `send_time` datetime DEFAULT NULL,
+  `type` int(11) DEFAULT '0',
+  `user_id` int(11) DEFAULT '-1',
+  `sender` int(11) DEFAULT '-1',
+  `extend_1` int(11) DEFAULT '0',
+  `extend_2` varchar(300) DEFAULT NULL,
+  `extend_3` varchar(300) DEFAULT NULL,
+  `extend_4` varchar(300) DEFAULT NULL,
+  `extend_5` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`message_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Table structure for `msg_setting`
+-- ----------------------------
+DROP TABLE IF EXISTS `msg_setting`;
+CREATE TABLE `msg_setting` (
+  `setting_id` int(11) NOT NULL DEFAULT '0',
+  `type` int(11) DEFAULT '0',
+  `com_port` int(11) DEFAULT '1',
+  `ip_address` varchar(50) DEFAULT NULL,
+  `ip_port` int(11) DEFAULT NULL,
+  `user_id` varchar(50) DEFAULT NULL,
+  `user_pwd` varchar(50) DEFAULT NULL,
+  `net_server` varchar(500) DEFAULT NULL,
+  `net_user` varchar(50) DEFAULT NULL,
+  `net_user_pwd` varchar(50) DEFAULT NULL,
+  `cr_ip` varchar(50) DEFAULT '',
+  `cr_url` varchar(100) DEFAULT '',
+  `cr_port` int(11) DEFAULT '2001',
+  `cr_user` varchar(50) DEFAULT '',
+  `cr_user_pwd` varchar(50) DEFAULT '',
+  PRIMARY KEY (`setting_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of msg_setting
+-- ----------------------------
+INSERT INTO msg_setting VALUES ('0', '3', '12', '192.168.1.113', '2001', 'super', '123', 'se1.china-sms.com:9900;se2.china-sms.com:9900;se3.china-sms.com:9900;se5.china-sms.com:9900', '', '', '127.0.0.1', 'www.coolroid.com', '2001', 'super', '123');
+
+************************************************************
+版本：			V6.5.0.606
+发布日期：	2012-09-28
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+ALTER TABLE `order_detail` add COLUMN not_print INT;
+ALTER TABLE `history_order_detail` add COLUMN not_print INT;
+ALTER TABLE `print_devices` add COLUMN paper_width INT;
+ALTER TABLE `payment` add COLUMN ticket_id INT;
+INSERT INTO macros VALUES ('15', 'COMBINE_SENDITEM', '0', '0 -不合并   1 -厨房单自动合并菜品');
+INSERT INTO macros VALUES ('16', 'NOPRINT_VOID', '0', '0 -退菜打印   1 -退菜不打印');
+INSERT INTO report VALUES('70','员工发票发放明细','6',1,0,0,-1,'report\\invoice_detail.rpt');
+INSERT INTO report VALUES('71','员工发票发放统计','6',1,0,0,-1,'report\\invoice_total.rpt');
+INSERT INTO report VALUES('80','代金券组使用统计','4',1,0,0,-1,'report\\tickets_class_total.rpt');
+INSERT INTO report VALUES('81','代金券使用统计','4',1,0,0,-1,'report\\tickets_total.rpt');
+ALTER TABLE menu_item add COLUMN ticket_class INT DEFAULT 1;
+ALTER TABLE descriptors_menu_item_slu add COLUMN ticket_class INT DEFAULT 1;
+-- ----------------------------
+-- Table structure for `tickets`
+-- ----------------------------
+DROP TABLE IF EXISTS `tickets`;
+CREATE TABLE `tickets` (
+  `ticket_id` int(11) NOT NULL,
+  `ticket_name` varchar(200) DEFAULT NULL,
+  `amount` decimal(11,2) DEFAULT NULL,
+  `remark` varchar(300) DEFAULT NULL,
+  `short_name` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`ticket_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `ticket_class`;
+CREATE TABLE `ticket_class` (
+  `ticket_class_id` int(11) NOT NULL DEFAULT '0',
+  `ticket_class_name` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`ticket_class_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS `ticket_relation`;
+CREATE TABLE `ticket_relation` (
+  `ticket_class_id` int(11) NOT NULL DEFAULT '0',
+  `ticket_id` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ticket_class_id`,`ticket_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- ----------------------------
+-- Records of ticket_class
+-- ----------------------------
+INSERT INTO ticket_class VALUES ('1', '不使用');
+INSERT INTO ticket_class VALUES ('2', '通用');
+-- ----------------------------
+-- Table structure for `invoices`
+-- ----------------------------
+DROP TABLE IF EXISTS `invoices`;
+CREATE TABLE `invoices` (
+  `invoice_id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_head_id` int(11) DEFAULT NULL,
+  `check_id` int(11) DEFAULT NULL,
+  `invoice_number` varchar(30) DEFAULT NULL,
+  `amount` decimal(10,0) DEFAULT NULL,
+  `employee_id` int(11) DEFAULT NULL,
+  `remark` varchar(30) DEFAULT NULL,
+  `edit_time` datetime DEFAULT NULL,
+  `pos_device_id` int(11) DEFAULT NULL,
+  `rvc_center_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`invoice_id`),
+  UNIQUE KEY `order_head_id` (`order_head_id`,`check_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+************************************************************
+版本：			V6.4.0.501
+发布日期：	2012-08-28
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+INSERT INTO report(report_name,report_class_id,is_date_range,is_rvc_range,is_number_range
+,number_range_type,template_filename) VALUES('改价记录','4',1,0,0,-1,'report\\change_price.rpt');
+
+INSERT INTO macros VALUES ('14', 'COMBINE_PAYITEM', '0', '0 -不合并   1 -结帐单自动合并菜品');
+ALTER table employee ADD COLUMN commission FLOAT DEFAULT 0;
+ALTER table menu_item ADD COLUMN commission_type int DEFAULT 0;
+ALTER table menu_item ADD COLUMN commission_value FLOAT DEFAULT 0;
+************************************************************
+版本：			V6.4.0.395
+发布日期：	2012-06-10
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+INSERT INTO macros VALUES ('13', 'NO_AUTO_COMBINE', '1', '0 -点菜时自动合并   1 -取消自动合并，一个菜一栏');
+************************************************************
+版本：			V6.4.0.300
+发布日期：	2012-06-10
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+insert into macros(macros_id,macros_name,macros_value,remark) 
+VALUES(12,'USE_SHOW_TEL','0','启动预订管理程序时，是否启动来电显示功能:\r\n1.启动\r\n0.不启动');
+ALTER TABLE print_devices ADD COLUMN is_print_note int DEFAULT 1;
+ALTER TABLE print_devices ADD COLUMN printer_name VARCHAR(300);
+ALTER TABLE print_devices ADD COLUMN flow_control int DEFAULT 1;
+
+ALTER table order_detail CHANGE discount_price original_price FLOAT;
+ALTER table history_order_detail CHANGE discount_price original_price FLOAT;
+
+ALTER table customer ADD COLUMN card_status int DEFAULT 0;
+ALTER table customer ADD COLUMN cid VARCHAR(40);
+ALTER table customer ADD COLUMN pwd VARCHAR(40);
+ALTER table customer ADD COLUMN open_date datetime;
+
+DROP TABLE IF EXISTS `history_card`;
+CREATE TABLE `history_card` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `old_card_id` varchar(40) DEFAULT NULL,
+  `new_card_id` varchar(40) DEFAULT NULL,
+  `employee_id` int(11) DEFAULT NULL,
+  `employee_name` varchar(60) DEFAULT NULL,
+  `time` datetime DEFAULT NULL,
+  `extend_1` varchar(40) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `order_default_group` (
+  `order_default_groupid` int(11) NOT NULL,
+  `order_default_groupname` varchar(100) DEFAULT NULL,
+  `serving_period_class` int(11) DEFAULT '-1',
+  `serving_place_class` int(11) DEFAULT '-1',
+  `extend_1` int(11) DEFAULT NULL,
+  `extend_2` int(11) DEFAULT NULL,
+  `extend_3` varchar(300) DEFAULT NULL,
+  `extend_4` varchar(300) DEFAULT NULL,
+  `extend_5` float DEFAULT NULL,
+  PRIMARY KEY (`order_default_groupid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN class_id int DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN print_class int DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN allow_condimentint int DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN required_condiment int DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN item_type int DEFAULT 0;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN major_group int DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN family_group int DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN period_class_id int DEFAULT -1;
+ALTER TABLE descriptors_menu_item_slu ADD COLUMN rvc_class_id int DEFAULT -1;
+************************************************************
+版本：			V6.3.0.280
+发布日期：	2012-05-14
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+INSERT INTO macros VALUES ('11', 'ROUND_ITEM_TTLPRICE', '1', '1 -计算单个菜品总价时四舍五入 ； 0 -不舍入');
+ALTER table customer MODIFY COLUMN amount DECIMAL(11,2);
+ALTER table customer_consume MODIFY COLUMN amount DECIMAL(11,2);
+alter TABLE `order_detail` add COLUMN n_service_type INT;
+alter TABLE `history_order_detail` add COLUMN n_service_type INT;
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+版本：			V6.3.0.276
+发布日期：	2012-05-08
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+alter TABLE `order_detail` add COLUMN description CHAR(100);
+alter TABLE `history_order_detail` add COLUMN description CHAR(100);
+alter table `customer_consume` add COLUMN id int unsigned primary key auto_increment;
+alter table `customer_consume` add COLUMN type int DEFAULT 0,
+add COLUMN order_head_id INT;
+alter TABLE bargain_price_item MODIFY COLUMN bargain_num FLOAT;
+alter TABLE bargain_price_item MODIFY COLUMN bargain_num_cur FLOAT;
+alter TABLE bargain_price_item MODIFY COLUMN bargain_item_name varchar(60);
+alter TABLE payment add COLUMN order_detail_id INT,add consume_id INT;
+alter TABLE `course_group` add COLUMN unit CHAR(30),
+add COLUMN num FLOAT,add COLUMN choose_num int,
+add COLUMN price FLOAT;
+alter table discount_service add column display_name char(60);
+alter table service_tip add column display_name char(60);
+
+-- ----------------------------
+-- Records of order_detail_default
+-- ----------------------------
+DROP TABLE IF EXISTS `order_detail_default`;
+CREATE TABLE `order_detail_default` (
+  `order_detail_default_id` int(11) NOT NULL AUTO_INCREMENT,
+  `menu_item_id` int(11) NOT NULL,
+  `quantity` float DEFAULT NULL,
+  `unit_id` int(11) DEFAULT NULL,
+  `discount_service_id` int(11) DEFAULT NULL,
+  `price` float DEFAULT NULL,
+  `mark` varchar(300) DEFAULT NULL,
+  `is_cus_num` int(11) DEFAULT '0',
+  `extend_1` int(11) DEFAULT '0',
+  `extend_2` int(11) DEFAULT '0',
+  `extend_3` varchar(300) DEFAULT NULL,
+  `extend_4` varchar(300) DEFAULT NULL,
+  `extend_5` float DEFAULT NULL,
+  PRIMARY KEY (`order_detail_default_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of macros
+-- ----------------------------
+DROP TABLE IF EXISTS `macros`;
+CREATE TABLE `macros` (
+  `macros_id` int(11) NOT NULL DEFAULT '0',
+  `macros_name` varchar(40) DEFAULT NULL,
+  `macros_value` varchar(200) DEFAULT NULL,
+  `remark` varchar(600) DEFAULT NULL,
+  PRIMARY KEY (`macros_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+INSERT INTO macros VALUES ('0', 'USER_NAME_LEN', '3', '用户名长度');
+INSERT INTO macros VALUES ('1', 'MAX_TABLE_NUM', '200', '最大桌号');
+INSERT INTO macros VALUES ('2', 'MAX_ITEM_QUANTITY', '50', '最大数量');
+INSERT INTO macros VALUES ('3', 'MAX_ITEM_WEIGHT', '50', '最大重量');
+INSERT INTO macros VALUES ('4', 'MAX_GUEST_NUM', '20', '最大客人数');
+INSERT INTO macros VALUES ('5', 'PREORDER_WARNING_HOUR', '5', '当前桌子在该值小时内有其他预订时，提醒');
+INSERT INTO macros VALUES ('6', 'EXIT_AFTER_SEND', '1', '下单后的行为：0- 不跳转；1- 跳转到桌位；2- 跳转到登陆界面');
+INSERT INTO macros VALUES ('7', 'PRINT_TRANS', '0', '转台打印：0 -不打印 1 -打印');
+INSERT INTO macros VALUES ('8', 'EXIT_AFTER_PAY', '1', '付款后的行为：0- 不跳转；1- 跳转到桌位；2- 跳转到登陆界面');
+INSERT INTO macros VALUES ('9', 'HEAD_BEGIN_ID', '800', '账单头order_head的起始ID');
+INSERT INTO macros VALUES ('10', 'COMBINE_ONE_CHECK', '1', '合台，合单时：  0 -合并到不同的单； 1 -合并到第一张单');
+-- ----------------------------
+-- Records of report
+-- ----------------------------
+DROP TABLE IF EXISTS `report`;
+CREATE TABLE `report` (
+  `report_id` int(11) NOT NULL AUTO_INCREMENT,
+  `report_name` varchar(40) DEFAULT NULL,
+  `report_class_id` int(11) DEFAULT NULL,
+  `is_date_range` bit(1) DEFAULT b'0',
+  `is_rvc_range` bit(1) DEFAULT b'0',
+  `is_number_range` bit(1) DEFAULT b'0',
+  `number_range_type` int(11) DEFAULT '-1',
+  `template_filename` varchar(256) DEFAULT NULL,
+  PRIMARY KEY (`report_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of report
+-- ----------------------------
+INSERT INTO report VALUES ('11', '菜品大类销售明细', '1', '', '', '', '-1', 'report\\major_gourp.rpt');
+INSERT INTO report VALUES ('12', '菜品小类', '1', '', '', '', '-1', 'report\\family_group.rpt');
+INSERT INTO report VALUES ('13', '时间段销售明细', '5', '', '', '', '-1', 'report\\systime_period.rpt');
+INSERT INTO report VALUES ('15', '员工菜品销售明细', '3', '', '', '', '0', 'report\\employee_item_sales.rpt');
+INSERT INTO report VALUES ('16', '收银明细', '6', '', '', '', '3', 'report\\cash_box_list.rpt');
+INSERT INTO report VALUES ('17', '菜品销售统计', '4', '', '', '', '2', 'report\\item_sales.rpt');
+INSERT INTO report VALUES ('18', '销售统计', '1', '', '', '', '-1', 'report\\sails.rpt');
+INSERT INTO report VALUES ('19', '退菜明细', '4', '', '', '', '0', 'report\\return_item_list.rpt');
+INSERT INTO report VALUES ('20', '未结账单明细', '2', '', '', '', '0', 'report\\unpay_check.rpt');
+INSERT INTO report VALUES ('21', '员工销售明细', '3', '', '', '', '0', 'report\\employee_sale.rpt');
+INSERT INTO report VALUES ('23', '账单流水报表', '2', '', '', '', '-1', 'report\\check_detail_common.rpt');
+INSERT INTO report VALUES ('24', '送菜明细报表', '4', '', '', '', '-1', 'report\\send_items.rpt');
+INSERT INTO report VALUES ('25', '送菜统计报表', '4', '', '', '', '-1', 'report\\send_items_sum.rpt');
+INSERT INTO report VALUES ('26', '挂账统计报表', '6', '', '', '', '-1', 'report\\unpay_bills.rpt');
+INSERT INTO report VALUES ('27', '会员卡消费统计报表', '6', '', '', '', '-1', 'report\\vipcard.rpt');
+INSERT INTO report VALUES ('28', '菜品明细(横排)', '4', '', '', '', '-1', 'report\\items.rpt');
+INSERT INTO report VALUES ('29', '菜品明细', '4', '', '', '', '-1', 'report\\items_1.rpt');
+INSERT INTO report VALUES ('31', '二级菜单菜品销售统计', '4', '', '', '', '4', 'report\\secondItem_sales.rpt');
+INSERT INTO report VALUES ('32', '一级菜单菜品销售统计', '4', '', '', '', '5', 'report\\mainItem_sales.rpt');
+INSERT INTO report VALUES ('33', '菜品大类数量畅销排行', '4', '', '', '', '-1', 'report\\major_items_num_desc.rpt');
+INSERT INTO report VALUES ('34', '菜品大类金额畅销排行', '4', '', '', '', '-1', 'report\\major_items_amount_desc.rpt');
+INSERT INTO report VALUES ('35', '菜品小类数量畅销排行', '4', '', '', '', '-1', 'report\\family_items_num_desc.rpt');
+INSERT INTO report VALUES ('36', '菜品小类金额畅销排行', '4', '', '', '', '-1', 'report\\family_items_amount_desc.rpt');
+INSERT INTO report VALUES ('37', '菜品大类数量滞销排行', '4', '', '', '', '-1', 'report\\major_items_num_asc.rpt');
+INSERT INTO report VALUES ('38', '菜品大类金额滞销排行', '4', '', '', '', '-1', 'report\\major_items_amount_asc.rpt');
+INSERT INTO report VALUES ('39', '菜品小类数量滞销排行', '4', '', '', '', '-1', 'report\\family_items_num_asc.rpt');
+INSERT INTO report VALUES ('40', '菜品小类金额滞销排行', '4', '', '', '', '-1', 'report\\family_items_amount_asc.rpt');
+INSERT INTO report VALUES ('41', '自定义菜销售明细', '4', '', '', '', '-1', 'report\\self_items.rpt');
+INSERT INTO report VALUES ('42', '自定义菜销售统计', '4', '', '', '', '-1', 'report\\self_items_sum.rpt');
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+版本：			V6.2.0.240
+发布日期：	2012-04-13
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+alter TABLE `restaurant` MODIFY fiscal_period_name VARCHAR(300);
+alter TABLE customer add COLUMN is_pre_comsume INT;
+
+DROP TABLE IF EXISTS `course_group`;
+CREATE TABLE `course_group` (
+  `course_id` int(11) NOT NULL DEFAULT '0',
+  `course_group_id` int(11) NOT NULL DEFAULT '0',
+  `menu_item_id` int(11) DEFAULT NULL,
+  `is_must` int(11) DEFAULT NULL,
+  `group_num` int(11) DEFAULT '1',
+  `course_group_name` varchar(40) DEFAULT NULL,
+  `description` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`course_id`,`course_group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+版本：			V6.2.0.210
+发布日期：	2012-03-17
+××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+CREATE TABLE `consumption_limit` (
+  `consumption_limit_id` int(11) NOT NULL DEFAULT '0',
+  `consumption_limit_name` varchar(30) DEFAULT NULL,
+  `limit_type` int(11) DEFAULT NULL,
+  `limit_amount` float DEFAULT NULL,
+  PRIMARY KEY (`consumption_limit_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE tables ADD consumption_limit int(11);

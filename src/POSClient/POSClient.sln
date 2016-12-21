@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "POSClient", "POSClient\POSClient.vcproj", "{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerIpSetting", "ServerIpSetting\ServerIpSetting.vcproj", "{748009EC-203D-4A3D-A657-4160CD71022A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		EN_Release|Win32 = EN_Release|Win32
+		Free_Debug|Win32 = Free_Debug|Win32
+		Free_Release|Win32 = Free_Release|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Debug|Win32.Build.0 = Debug|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.EN_Release|Win32.ActiveCfg = EN_Release|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.EN_Release|Win32.Build.0 = EN_Release|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Free_Debug|Win32.ActiveCfg = Free_Debug|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Free_Debug|Win32.Build.0 = Free_Debug|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Free_Release|Win32.ActiveCfg = Free_Release|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Free_Release|Win32.Build.0 = Free_Release|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Release|Win32.ActiveCfg = Release|Win32
+		{61017CAA-A235-4122-9AC3-FE3F7A04EDFE}.Release|Win32.Build.0 = Release|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Debug|Win32.Build.0 = Debug|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.EN_Release|Win32.ActiveCfg = Release|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.EN_Release|Win32.Build.0 = Release|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Free_Debug|Win32.ActiveCfg = Debug|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Free_Debug|Win32.Build.0 = Debug|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Free_Release|Win32.ActiveCfg = Release|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Free_Release|Win32.Build.0 = Release|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Release|Win32.ActiveCfg = Release|Win32
+		{748009EC-203D-4A3D-A657-4160CD71022A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
