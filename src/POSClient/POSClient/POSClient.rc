@@ -28,7 +28,7 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 
 #if defined(APSTUDIO_INVOKED) || !defined(GICATER_VERSION)
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 17,1,1,20
+ FILEVERSION 17,1,1,21
  PRODUCTVERSION 17,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -46,7 +46,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "COOLROID Technologies Co., Ltd"
             VALUE "FileDescription", "POS Operations"
-            VALUE "FileVersion", "17, 1, 1, 20"
+            VALUE "FileVersion", "17, 1, 1, 21"
             VALUE "InternalName", "POSClient.exe"
             VALUE "LegalCopyright", "COOLROID All Rights Reserved"
             VALUE "OriginalFilename", "POSClient.exe"
@@ -67,7 +67,7 @@ VS_VERSION_INFO$(GICATER_VERSION) VERSIONINFO
 #else
 VS_VERSION_INFO VERSIONINFO
 #endif
- FILEVERSION 17,1,1,20
+ FILEVERSION 17,1,1,21
  PRODUCTVERSION 17,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -85,7 +85,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "COOLROID Technologies Co., Ltd"
             VALUE "FileDescription", "聚客(Gicater)点餐收银前台"
-            VALUE "FileVersion", "17, 1, 1, 20"
+            VALUE "FileVersion", "17, 1, 1, 21"
             VALUE "InternalName", "POSClient.exe"
             VALUE "LegalCopyright", "COOLROID 保留所有权利。"
             VALUE "OriginalFilename", "POSClient.exe"

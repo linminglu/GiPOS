@@ -218,7 +218,8 @@ void ShiftDlg::GetShiftInfoByUser(LPCTSTR strUser)
 		//1.总小费金额。按买单员工统计
 		double total_tips=0;
 		strSQL.Format(_T("select round(sum(tips_amount),2) from history_order_head,payment where")
-			_T(" order_end_time>=\'%s\' AND order_end_time<=\'%s\' AND history_order_head.order_head_id=payment.order_head_id AND payment.employee_id=%s"),str_from,str_to,strUser);
+			_T(" order_end_time>=\'%s\' AND order_end_time<=\'%s\' AND history_order_head.order_head_id=payment.order_head_id AND history_order_head.check_id=payment.check_id AND payment.employee_id=%s")
+			,str_from,str_to,strUser);
 		rs.Open( CRecordset::forwardOnly,strSQL);
 		if (!rs.IsEOF())
 		{
@@ -229,7 +230,8 @@ void ShiftDlg::GetShiftInfoByUser(LPCTSTR strUser)
 		//2.银行卡小费。
 		double card_tips=0;
 		strSQL.Format(_T("select round(sum(actual_price),2) from history_order_detail,history_order_head,payment where menu_item_id=-6")
-			_T(" AND history_order_detail.order_head_id=history_order_head.order_head_id AND history_order_head.order_head_id=payment.order_head_id AND payment.employee_id=%s AND order_end_time>=\'%s\' AND order_end_time<=\'%s\'"),
+			_T(" AND history_order_detail.order_head_id=history_order_head.order_head_id AND history_order_head.order_head_id=payment.order_head_id")
+			_T(" AND history_order_detail.check_id=payment.check_id AND history_order_head.check_id=payment.check_id AND payment.employee_id=%s AND order_end_time>=\'%s\' AND order_end_time<=\'%s\'"),
 			strUser,str_from,str_to);
 		rs.Open( CRecordset::forwardOnly,strSQL);
 		if (!rs.IsEOF())
