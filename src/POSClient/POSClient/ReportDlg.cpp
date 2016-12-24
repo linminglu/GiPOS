@@ -327,7 +327,7 @@ void CReportDlg::ShowReport1(BOOL bSms)
 	m_strResult.Empty();
 	theLang.LoadString(m_strResult,IDS_RPTOVERVIEW);
 	strSQL.Format(_T("select round(sum(actual_price),2) from history_order_detail,history_order_head where menu_item_id>0 AND is_return_item=0 ")
-		_T("AND history_order_detail.order_head_id=history_order_head.order_head_id AND order_end_time>=\'%s\' AND order_end_time<=\'%s\'")
+		_T("AND history_order_detail.order_head_id=history_order_head.order_head_id AND history_order_detail.check_id=history_order_head.check_id AND order_end_time>=\'%s\' AND order_end_time<=\'%s\'")
 		,m_strStartDate,m_strEndDate);
 	rs.Open( CRecordset::forwardOnly,strSQL);
 	if (!rs.IsEOF())
@@ -345,7 +345,7 @@ void CReportDlg::ShowReport1(BOOL bSms)
 	rs.Close();
 
 	strSQL.Format(_T("select round(sum(actual_price),2) from history_order_detail,history_order_head where menu_item_id=-6 AND is_return_item=0 ")
-		_T("AND history_order_detail.order_head_id=history_order_head.order_head_id AND order_end_time>=\'%s\' AND order_end_time<=\'%s\'")
+		_T("AND history_order_detail.order_head_id=history_order_head.order_head_id AND history_order_detail.check_id=history_order_head.check_id AND order_end_time>=\'%s\' AND order_end_time<=\'%s\'")
 		,m_strStartDate,m_strEndDate);
 	rs.Open( CRecordset::forwardOnly,strSQL);
 	if (!rs.IsEOF())

@@ -1052,21 +1052,16 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 		}
 		rs.Close();
 
-		if (theApp.m_bQuickService&&theApp.m_nOrderHeadid==0)
-		{
-			if(OrderDlg::SaveOrderHead()==FALSE)
-				return;
-		}
-
 		double actualPaid=0;//实收金额，不扣除找零
 		actualPaid=fPayed;
 		pApp->m_cusDisplay.Display(fPayed,3);
 		double fChange=fPayed-m_checkDlg[active].m_fDebt;
+		double fTips=0;
 		if(fChange>=0.01)
 		{
 			if(bAddTips)
 			{//收取小费
-				double tips=0;
+				
 				if(bPaidfull)
 				{//现金找零，手动输入小费.
 					TipsAddDlg tipDlg;
@@ -1076,7 +1071,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 						return;
 					//重新计算找零
 					fChange=tipDlg.m_fChange;
-					tips=tipDlg.m_fTips;
+					fTips=tipDlg.m_fTips;
 					if(fChange>=0.01)
 					{
 						CString str2;
@@ -1097,12 +1092,10 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 					wcsncpy_s(tipsinfo->item_name,_T("Tips"),63);
 					tipsinfo->total_price=fChange;
 					tipsinfo->item_price=fChange;
-					tips=fChange;
+					fTips=fChange;
 					m_pOrderList->AddTail(tipsinfo);
 					//fPayed=m_checkDlg[active].m_fDebt;
 				}
-				strSQL.Format(_T("UPDATE order_head SET tips_amount=%f WHERE order_head_id=%d AND check_id=%d"),tips,theApp.m_nOrderHeadid,active+1);
-				theDB.ExecuteSQL(strSQL);
 			}
 			else
 			{//不使用小费
@@ -1132,7 +1125,12 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 			strLine.Append(_T("\n"));
 			theApp.m_VCR.Print(strLine);
 		}
-		
+		//在此之前不要更新order_head，因为分单可能还没有生成
+		if (theApp.m_bQuickService&&theApp.m_nOrderHeadid==0)
+		{
+			if(OrderDlg::SaveOrderHead()==FALSE)
+				return;
+		}
 		OrderDlg::SaveOrderToDB(m_pOrderList,&m_checkDlg);
 		//更新数据库中的付款项
 		if(strCardId.GetLength()==0)
@@ -1146,6 +1144,11 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 				(double)m_checkDlg[active].m_fPayed,strCardId,pApp->m_nOrderHeadid,active+1);
 		}
 		theDB.ExecuteSQL(strSQL);
+		if(fTips>0.001)
+		{
+			strSQL.Format(_T("UPDATE order_head SET tips_amount=%f WHERE order_head_id=%d AND check_id=%d"),fTips,theApp.m_nOrderHeadid,active+1);
+			theDB.ExecuteSQL(strSQL);
+		}
 		if(m_pSecond)
 		{
 			m_pSecond->ShowAmount((double)m_checkDlg[active].m_fPayed,(double)m_checkDlg[active].m_fDebt);
