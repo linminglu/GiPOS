@@ -13,6 +13,7 @@
 #include "LoginDlg.h"
 #include "ShiftDlg.h"
 #include "NumberInputDlg.h"
+#include "DisplaySettingDlg.h"
 
 
 // ManagerDlg 对话框
@@ -44,6 +45,7 @@ BEGIN_MESSAGE_MAP(ManagerDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_REPORT2, &ManagerDlg::OnBnClickedReport2)
 	ON_BN_CLICKED(IDC_BUTTON_REPORT3, &ManagerDlg::OnBnClickedReport3)
 	ON_BN_CLICKED(IDC_BUTTON_REPORT4, &ManagerDlg::OnBnClickedReport4)
+	ON_BN_CLICKED(IDC_BUTTON_CASHREPORT,&ManagerDlg::OnBnClickedCashReport)
 	ON_BN_CLICKED(IDC_BUTTON_SHIFT, &ManagerDlg::OnBnClickedShift)
 	ON_BN_CLICKED(IDC_BUTTON_DAYEND,&ManagerDlg::OnBnClickedDayend)
 	ON_BN_CLICKED(IDC_BUTTON_ABORTPAY,&ManagerDlg::OnBnClickedAbortPay)
@@ -59,6 +61,7 @@ BEGIN_MESSAGE_MAP(ManagerDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_VIEWVIP_WEB,&FunctionDlg::OnBnClickedViewVip)
 	ON_BN_CLICKED(IDC_BUTTON_BACKUP,&CLoginDlg::OnBnClickedBackup)
 	ON_BN_CLICKED(IDC_BUTTON_EXTERNAL,&ManagerDlg::RunExternal)
+	ON_BN_CLICKED(IDC_BUTTON_DISPLAYSET,&ManagerDlg::OnBnClickedDispalySet)
 	ON_COMMAND_RANGE(IDC_BUTTON_NEXTPAGE,IDC_BUTTON_NEXTPAGE+50,&CPosPage::OnNextPage)
 //	ON_WM_SIZE()
 	ON_WM_ERASEBKGND()
@@ -155,6 +158,18 @@ void ManagerDlg::OnBnClickedReport4()
 	dlg.m_iType=0;
 	dlg.m_strQuerry=_T("SELECT customer.card_id AS 卡号,customer_name AS 名称,customer_consume.amount AS 金额,order_head_id AS 账单号 FROM customer_consume,customer")
 		_T(" WHERE customer_consume.card_id=customer.card_id AND is_pre_comsume=1 AND time>=\'%s\' AND time<\'%s\' ORDER BY customer.card_id");
+	dlg.DoModal();
+}
+/************************************************************************
+现金出入统计
+************************************************************************/
+void ManagerDlg::OnBnClickedCashReport()
+{
+	CReportDlg dlg;
+	GetDlgItem(IDC_BUTTON_CASHREPORT)->GetWindowText(dlg.m_strTitle);
+	dlg.m_iType=0;
+	dlg.m_strQuerry=_T("SELECT employee_id,cash_amount,remark FROM cashbox_in_out WHERE")
+		_T(" in_out_time>=\'%s\' AND in_out_time<\'%s\'");
 	dlg.DoModal();
 }
 /************************************************************************
@@ -679,14 +694,21 @@ void ManagerDlg::OnBnClickedCashIn()
 			POSMessageBox(IDS_NUMERROR);
 			return;
 		}
+		CString strRemark;
+		StringInputDlg strDlg;
+		theLang.LoadString(strDlg.m_strTitle,IDS_INPUTCOMMENT);
+		if(strDlg.DoModal()==IDOK)
+		{
+			strRemark=strDlg.m_strInput;
+		}
 		theApp.OpenDrawer();
 		if(theApp.m_VCR.IsOpen())
 		{
 			theApp.m_VCR.Print(_T("OPEN DRAWER\n"));
 		}
 		CString strSQL;
-		strSQL.Format(_T("INSERT INTO cashbox_in_out(cashbox_id,type,cash_amount,in_out_time,employee_id,employee_name)")
-			_T(" VALUES(%d,0,%f,now(),%s,\'%s\')"),theApp.m_nDeviceId,amount,userid,username);
+		strSQL.Format(_T("INSERT INTO cashbox_in_out(cashbox_id,type,cash_amount,in_out_time,employee_id,employee_name,remark)")
+			_T(" VALUES(%d,0,%f,now(),%s,\'%s\',\'%s\')"),theApp.m_nDeviceId,amount,userid,username,strRemark);
 		theDB.ExecuteSQL(strSQL);
 	}catch(...)
 	{
@@ -712,14 +734,21 @@ void ManagerDlg::OnBnClickedCashOut()
 			POSMessageBox(IDS_NUMERROR);
 			return;
 		}
+		CString strRemark;
+		StringInputDlg strDlg;
+		theLang.LoadString(strDlg.m_strTitle,IDS_INPUTCOMMENT);
+		if(strDlg.DoModal()==IDOK)
+		{
+			strRemark=strDlg.m_strInput;
+		}
 		theApp.OpenDrawer();
 		if(theApp.m_VCR.IsOpen())
 		{
 			theApp.m_VCR.Print(_T("OPEN DRAWER\n"));
 		}
 		CString strSQL;
-		strSQL.Format(_T("INSERT INTO cashbox_in_out(cashbox_id,type,cash_amount,in_out_time,employee_id,employee_name)")
-			_T(" VALUES(%d,1,-%f,now(),%s,\'%s\')"),theApp.m_nDeviceId,amount,userid,username);
+		strSQL.Format(_T("INSERT INTO cashbox_in_out(cashbox_id,type,cash_amount,in_out_time,employee_id,employee_name,remark)")
+			_T(" VALUES(%d,1,-%f,now(),%s,\'%s\',\'%s\')"),theApp.m_nDeviceId,amount,userid,username,strRemark);
 		theDB.ExecuteSQL(strSQL);
 	}catch(...)
 	{
@@ -730,6 +759,12 @@ void ManagerDlg::OnBnClickedCashOut()
 void ManagerDlg::RunExternal()
 {
 	ShellExecute(NULL, NULL, _T("external.vbs"), NULL, NULL,SW_HIDE);
+}
+
+void ManagerDlg::OnBnClickedDispalySet()
+{
+	DisplaySettingDlg dlg;
+	dlg.DoModal();
 }
 
 BOOL ManagerDlg::PreTranslateMessage(MSG* pMsg)

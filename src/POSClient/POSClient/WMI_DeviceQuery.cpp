@@ -164,7 +164,7 @@ INT WMI_DeviceQuery( INT iQueryType, T_DEVICE_PROPERTY *properties, INT iSize )
 	// 获得WMI连接COM接口
     IWbemLocator *pLoc = NULL;
     hres = CoCreateInstance( 
-		CLSID_WbemLocator,             
+		CLSID_WbemLocator, 
         NULL, 
         CLSCTX_INPROC_SERVER, 
         IID_IWbemLocator,

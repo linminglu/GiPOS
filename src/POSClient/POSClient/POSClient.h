@@ -244,7 +244,6 @@ private:
 	BOOL AppLibCrypt_HASH_SHA1_FILE(CString strFilePath, BYTE* byOutPut, DWORD &dwOutPutLen);
 	BOOL CheckSignature(CString filePath,CString sigPath);
 	BOOL GetDeviceID();
-	CString GetGicaterID();
 	BOOL InitPrinter();
 	void ResetAutoIncrement();
 	void OpenDrawer();
@@ -278,6 +277,7 @@ int POSMessageBox(UINT nIDPrompt,UINT nType = MB_OK);
 void ComputeTotalPrice(OrderDetail* pOrder);
 void ComputeTax(OrderDetail* pOrder);
 CString FormatDBStr(LPCTSTR str);
+CString GetMacAddress();
 int ScaleX(int pt);
 int ScaleY(int pt);
 

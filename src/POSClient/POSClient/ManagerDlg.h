@@ -40,6 +40,7 @@ public:
 	afx_msg void OnBnClickedReport2();
 	afx_msg void OnBnClickedReport3();
 	afx_msg void OnBnClickedReport4();
+	afx_msg void OnBnClickedCashReport();
 	afx_msg void OnBnClickedShift();
 	afx_msg void OnBnClickedDayend();
 	afx_msg void OnBnClickedAbortPay();
@@ -48,5 +49,6 @@ public:
 	afx_msg void OnBnClickedCashIn();
 	afx_msg void OnBnClickedCashOut();
 	afx_msg void RunExternal();
+	afx_msg void OnBnClickedDispalySet();
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };

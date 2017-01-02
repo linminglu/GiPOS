@@ -512,6 +512,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DisplaySettingDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\EftMsgDlg.cpp"
 				>
 			</File>
@@ -664,15 +668,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ServerIPDlg.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ShiftDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SoftwareKey2.cpp"
 				>
 			</File>
 			<File
@@ -854,6 +850,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DisplaySettingDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\EftMsgDlg.h"
 				>
 			</File>
@@ -1011,10 +1011,6 @@
 			</File>
 			<File
 				RelativePath=".\SelectItemDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ServerIPDlg.h"
 				>
 			</File>
 			<File

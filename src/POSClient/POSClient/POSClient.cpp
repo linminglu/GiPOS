@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <Windows.h>
+#include <Iphlpapi.h>
 #include <Tlhelp32.h>
 #include "POSClient.h"
 #include "MainSheet.h"
@@ -19,7 +20,6 @@
 #include "ManagerDlg.h"
 #include "ViewCheckDlg.h"
 #include "WebDlg.h"
-#include "SoftwareKey2.h"
 #include <GdiPlus.h>
 #include "SplashWnd.h"
 #include "WMI_DeviceQuery.h"
@@ -307,6 +307,7 @@ BOOL CPOSClientApp::InitInstance()
 		splash.SetAutoProgress(0, 30, 3);
 	}
 	TCHAR cPath[200];
+	//GetMacAddress();
 	//setlocale(LC_ALL, "En_US");
 	//LOG4CPLUS 记录中文用到
 	std::locale::global(std::locale::classic());
@@ -1566,48 +1567,7 @@ void CPOSClientApp::CriticalLogs(OPR_TYPES opr,CString detail)
 	{
 	}
 }
-CString CPOSClientApp::GetGicaterID()
-{
-	if(!m_strGicaterId.IsEmpty())
-		return m_strGicaterId;
-	m_strGicaterId=m_strResId;
-	T_DEVICE_PROPERTY proper={0};
-	WMI_DeviceQuery(1,&proper,1);
-	CString tmp;
-	tmp.Format(_T("%s"),proper.szProperty);
-	tmp=tmp.Trim();
-	if (tmp.IsEmpty())
-	{
-		tmp.Format(_T("unkown"));
-	}
-	m_strGicaterId.AppendFormat(L"%s#@!-%s",tmp,tmp);
-	char szName[256]={0}; 
-	gethostname(szName,256);
-	tmp=szName;
-	tmp.MakeUpper();
-	m_strGicaterId.AppendFormat(_T("-%s"),tmp);
-	memset(&proper,0,sizeof(T_DEVICE_PROPERTY));
-	WMI_DeviceQuery(2,&proper,1);
-	m_strGicaterId.AppendFormat(_T("-%s"),proper.szProperty);
-	memset(&proper,0,sizeof(T_DEVICE_PROPERTY));
-	WMI_DeviceQuery(3,&proper,1);
-	m_strGicaterId.AppendFormat(_T("-%s-"),proper.szProperty);
-	m_strGicaterId.Trim();
-	CStringA strmd5,inputstr;
-	MD5_CTX hash_ctx;
-	unsigned char hash_ret[16];
-	inputstr.Format("coolroid%s",UnicodeToANSI(m_strGicaterId));
-	MD5_Init(&hash_ctx);
-	MD5_Update(&hash_ctx, (LPCSTR)inputstr, inputstr.GetLength());
-	MD5_Final(hash_ret, &hash_ctx);
-	strmd5.Empty();
-	for( int i=0; i<16; i++ ){
-		strmd5.AppendFormat("%02X",hash_ret[i]);
-	}
-	tmp=strmd5;
-	m_strGicaterId.AppendFormat(_T("%s"),tmp);
-	return m_strGicaterId;
-}
+
 void CPOSClientApp::OpenDrawer()
 {
 	//培训模式不能打开
@@ -1737,4 +1697,33 @@ CString FormatDBStr(LPCTSTR str)
 	str_to.Replace(_T("'"),_T("''"));
 	str_to.Replace(_T("\\"),_T("\\\\"));
 	return str_to;
+}
+CString GetMacAddress()
+{
+	CString strMAC=_T("00-00-00-00-00-00");
+	PIP_ADAPTER_ADDRESSES pAddresses = NULL;  
+	ULONG outBufLen = 0;  
+	DWORD dwRetVal = 0;  
+
+	GetAdaptersAddresses(AF_UNSPEC,0, NULL, pAddresses,&outBufLen);  
+
+	pAddresses = (IP_ADAPTER_ADDRESSES*) malloc(outBufLen);  
+
+	if ((dwRetVal = GetAdaptersAddresses(AF_INET,GAA_FLAG_SKIP_ANYCAST,NULL,pAddresses,&outBufLen)) == NO_ERROR)
+	{
+		while(pAddresses)
+		{
+			if(wcsstr(pAddresses->Description,_T("PCI"))>0//物理网卡
+				||pAddresses->IfType==71)//无线网卡
+			{
+				strMAC.Format(_T("%.2X-%.2X-%.2X-%.2X-%.2X-%.2X"),   
+					pAddresses->PhysicalAddress[0],pAddresses->PhysicalAddress[1],  
+					pAddresses->PhysicalAddress[2],pAddresses->PhysicalAddress[3],  
+					pAddresses->PhysicalAddress[4],pAddresses->PhysicalAddress[5]);
+			}
+			pAddresses = pAddresses->Next;
+		}
+	}
+	free(pAddresses);
+	return strMAC;
 }

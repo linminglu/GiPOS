@@ -38,10 +38,12 @@ public:
 	afx_msg void OnLvnItemchangedList1(NMHDR *pNMHDR, LRESULT *pResult);
 	CString m_strResult;
 	CString m_strPhone;
+	BOOL m_bIgnore;
 	afx_msg void OnBnClickedButtonLocation();
 protected:
 	virtual void OnOK();
 public:
 	afx_msg void OnBnClickedButtonSoftkey();
 	afx_msg void OnPaint();
+	afx_msg void OnBnClickedCancel();
 };

@@ -18,6 +18,7 @@
 #pragma comment(lib,"odbc32.lib")
 #pragma comment(lib,"version.lib")
 #pragma comment(lib,"Imm32.lib")
+#pragma comment(lib,"Iphlpapi.lib")
 #pragma comment(lib,"libcef.lib")
 #pragma comment(lib,"libcef_dll_wrapper.lib")
 //#pragma comment(lib,"Rockey3.lib")

@@ -45,10 +45,12 @@ public:
 	CString m_strUser;
 	CString m_strInvoice;
 	CTime m_dayendTime;
+	CString m_strDate;
 
 	CRoundButton2 m_btnPrepage;
 	CRoundButton2 m_btPrint;
 	CRoundButton2 m_btPrePrint;
+	CRoundButton2 m_btPrintSerial;
 	CRoundButton2 m_btInvoice;
 	CRoundButton2 m_btReopen;
 	CRoundButton2 m_btTable;
@@ -75,4 +77,5 @@ public:
 	afx_msg void OnBnClickedButtonPreprint();
 	afx_msg void OnBnClickedButtonTips();
 	void ResetButton();
+	afx_msg void OnBnClickedButtonPrintSerial();
 };

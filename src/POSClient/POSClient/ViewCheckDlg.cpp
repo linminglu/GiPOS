@@ -4,6 +4,7 @@
 #include "OrderDlg.h"
 #include "FloorDlg.h"
 #include "FloorChooseDlg.h"
+#include "ReportDlg.h"
 #include "PayDlg.h"
 #include "NumberInputDlg.h"
 
@@ -45,6 +46,7 @@ void ViewCheckDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON_REOPEN,m_btReopen);
 	DDX_Control(pDX, IDC_BUTTON_NUM, m_btTable);
 	DDX_Control(pDX, IDC_BUTTON_TIPS, m_btTips);
+	DDX_Control(pDX, IDC_BUTTON_PRINT_SERIAL,m_btPrintSerial);
 }
 BEGIN_MESSAGE_MAP(ViewCheckDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_PRE, &ViewCheckDlg::OnBnClickedButtonPre)
@@ -59,6 +61,7 @@ BEGIN_MESSAGE_MAP(ViewCheckDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_REOPEN, &ViewCheckDlg::OnBnClickedButtonReopen)
 	ON_BN_CLICKED(IDC_BUTTON_PREPRINT, &ViewCheckDlg::OnBnClickedButtonPreprint)
 	ON_BN_CLICKED(IDC_BUTTON_TIPS, &ViewCheckDlg::OnBnClickedButtonTips)
+	ON_BN_CLICKED(IDC_BUTTON_PRINT_SERIAL, &ViewCheckDlg::OnBnClickedButtonPrintSerial)
 END_MESSAGE_MAP()
 BOOL ViewCheckDlg::OnInitDialog()
 {
@@ -120,6 +123,9 @@ BOOL ViewCheckDlg::OnInitDialog()
 	theLang.LoadString(str2,IDS_TIPS);
 	m_btTips.SetWindowText(str2);
 	m_btTips.SetImage(_T("Picture\\bt_orange_71.png"));
+	//theLang.LoadString(str2,IDS_PRINT_SERIAL);
+	//m_btPrintSerial.SetWindowText(str2);
+	m_btPrintSerial.SetImage(_T("Picture\\bt_orange_71.png"));
 
 	m_logCtrl.SetFont(&theApp.m_txtFont);
 	m_checkCtrl.SetFont(&theApp.m_txtFont);
@@ -129,7 +135,6 @@ BOOL ViewCheckDlg::OnInitDialog()
 
 	ResetButton();
 #ifndef EN_VERSION
-	m_btPrePrint.ShowWindow(SW_HIDE);
 	m_btTips.ShowWindow(SW_HIDE);
 #endif
 	return FALSE;  // return TRUE unless you set the focus to a control
@@ -148,6 +153,7 @@ void ViewCheckDlg::ResetButton()
 	m_btReopen.SetTextColor(DEFALUT_TXT_COLOR);
 	m_btTable.SetTextColor(DEFALUT_TXT_COLOR);
 	m_btTips.SetTextColor(DEFALUT_TXT_COLOR);
+	m_btPrintSerial.SetTextColor(DEFALUT_TXT_COLOR);
 }
 
 void ViewCheckDlg::OnSetActive()
@@ -172,6 +178,8 @@ void ViewCheckDlg::OnSetActive()
 			m_btReopen.SetWindowText(str2);
 			theLang.LoadString(str2,IDS_TIPS);
 			m_btTips.SetWindowText(str2);
+			theLang.LoadString(str2,IDS_PRINT_SERIAL);
+			m_btPrintSerial.SetWindowText(str2);
 			ResetButton();
 
 			HDITEM htItem = {0};
@@ -366,13 +374,14 @@ void ViewCheckDlg::OnSize(UINT nType, int cx, int cy)
 		m_listCtrl.MoveWindow((int)(cx*0.36),(int)(cy*0.23),(int)(cx*0.62),(int)(cy*0.75));
 		m_datetimeCtrl.MoveWindow((int)(cx*0.4),50,(int)(cx*0.18),height);
 		int bt_height=72;
-		m_btPrint.MoveWindow((int)(cx*0.6),25,bt_width,bt_height);
-		m_btInvoice.MoveWindow((int)(cx*0.73),25,bt_width,bt_height);
+		m_btPrint.MoveWindow((int)(cx*0.61),25,bt_width,bt_height);
+		m_btInvoice.MoveWindow((int)(cx*0.735),25,bt_width,bt_height);
 		m_btnPrepage.MoveWindow((int)(cx*0.86),25,bt_width,bt_height);
 		
-		m_btTips.MoveWindow((int)(cx*0.47),30+bt_height,bt_width,bt_height);
-		m_btPrePrint.MoveWindow((int)(cx*0.6),30+bt_height,bt_width,bt_height);
-		m_btTable.MoveWindow((int)(cx*0.73),30+bt_height,bt_width,bt_height);
+		m_btTips.MoveWindow((int)(cx*0.36),30+bt_height,bt_width,bt_height);
+		m_btPrintSerial.MoveWindow((int)(cx*0.485),30+bt_height,bt_width,bt_height);
+		m_btPrePrint.MoveWindow((int)(cx*0.61),30+bt_height,bt_width,bt_height);
+		m_btTable.MoveWindow((int)(cx*0.735),30+bt_height,bt_width,bt_height);
 		m_btReopen.MoveWindow((int)(cx*0.86),30+bt_height,bt_width,bt_height);
 		
 
@@ -472,17 +481,17 @@ void ViewCheckDlg::OnLvnItemchangedList2(NMHDR *pNMHDR, LRESULT *pResult)
 void ViewCheckDlg::OnBnClickedSearch()
 {
 	m_nOrderHeadid=0;
-	CString strDate,strSQL;
-	m_datetimeCtrl.GetWindowText(strDate);
+	CString strSQL;
+	m_datetimeCtrl.GetWindowText(m_strDate);
 	if(macrosInt[_T("FOOD_COURT")]==0)
 	{
 		strSQL.Format(_T("SELECT * FROM history_order_head AS h LEFT JOIN invoices i ON (h.order_head_id=i.order_head_id AND h.check_id=i.check_id) WHERE date(order_end_time)='%s' ORDER BY h.order_head_id")
-			,strDate);
+			,m_strDate);
 	}
 	else
 	{//美食广场
 		strSQL.Format(_T("SELECT * FROM history_order_head AS h LEFT JOIN invoices i ON (h.order_head_id=i.order_head_id AND h.check_id=i.check_id) WHERE date(order_end_time)='%s' AND pos_device_id=%d ORDER BY h.order_head_id")
-			,strDate,theApp.m_nDeviceId);
+			,m_strDate,theApp.m_nDeviceId);
 	}
 	ShowOrderheads(strSQL);
 }
@@ -551,17 +560,17 @@ void ViewCheckDlg::OnBnClickedButtonNum()
 	if(dlg.DoModal()==IDCANCEL)
 		return;
 	//m_editCtrl.SetWindowText(dlg.);
-	CString strDate,strSQL;
-	m_datetimeCtrl.GetWindowText(strDate);
+	CString strSQL;
+	m_datetimeCtrl.GetWindowText(m_strDate);
 	if(macrosInt[_T("FOOD_COURT")]==0)
 	{
 		strSQL.Format(_T("SELECT * FROM history_order_head AS h LEFT JOIN invoices i ON (h.order_head_id=i.order_head_id AND h.check_id=i.check_id) WHERE date(order_end_time)='%s' AND h.table_id=%d ORDER BY h.order_head_id")
-		,strDate,dlg.m_nTableId);
+		,m_strDate,dlg.m_nTableId);
 	}
 	else
 	{//美食广场
 		strSQL.Format(_T("SELECT * FROM history_order_head AS h LEFT JOIN invoices i ON (h.order_head_id=i.order_head_id AND h.check_id=i.check_id) WHERE date(order_end_time)='%s' AND h.table_id=%d  AND pos_device_id=%d ORDER BY h.order_head_id")
-		,strDate,dlg.m_nTableId,theApp.m_nDeviceId);
+		,m_strDate,dlg.m_nTableId,theApp.m_nDeviceId);
 	}
 	ShowOrderheads(strSQL);
 }
@@ -849,6 +858,51 @@ BOOL ViewCheckDlg::OnEraseBkgnd(CDC* pDC)
 		m_btReopen.SetBkGnd(pDC,TRUE);
 		m_btTable.SetBkGnd(pDC,TRUE);
 		m_btTips.SetBkGnd(pDC,TRUE);
+		m_btPrintSerial.SetBkGnd(pDC,TRUE);
 	}
 	return TRUE;
+}
+
+void ViewCheckDlg::OnBnClickedButtonPrintSerial()
+{
+	CString userid;
+	int auth=OrderDlg::RequeastAuth(userid,_T("manager_privilege"),3);
+	if(auth!=0)
+		return;
+	LOG4CPLUS_INFO(log_pos,"ViewCheckDlg::OnBnClickedButtonPrintSerial");
+	PrintDeviceInfo printer;
+	if(theApp.m_prePrinter.nDeviceType==-1||theApp.m_prePrinter.nPaperWidth==0)
+	{
+		if (theApp.m_payPrinter.nDeviceType==-1)
+		{//没有配置打印机，无法打印
+			return;
+		}
+		printer=theApp.m_payPrinter;
+	}
+	else
+		printer=theApp.m_prePrinter;
+
+	CString strResult;
+	int size=m_listCtrl.GetItemCount();
+	for(int i=size-1;i>=0;i--)
+	{
+		long head_id=_wtol(m_listCtrl.GetItemText(i,0));
+		strResult.AppendFormat(_T("%09d  "),head_id);
+		
+		strResult.Append(CReportDlg::FormatString(m_listCtrl.GetItemText(i,1),8));
+		int nCheck=_wtoi(m_listCtrl.GetItemText(i,2));
+		double amount=_wtof(m_listCtrl.GetItemText(i,4));
+		strResult.Append(CReportDlg::FormatString(amount,8));
+		strResult.Append(_T("\r\n"));
+	}
+
+	JSONVALUE root;
+	CPOSClientApp::FormatPrintDevice(root,printer);
+	root[_T("template")]=TEMPLATE_REPORT;
+	root[_T("head")]=_T("Serial Report");
+	root[_T("open_time")]=m_strDate;
+	root[_T("message")]=strResult;
+	CTime time_to=CTime::GetCurrentTime();
+	root[_T("time")]=time_to.Format(_T("%Y-%m-%d %H:%M:%S"));
+	CPOSClientApp::PrintJson(root);
 }

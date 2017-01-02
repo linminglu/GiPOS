@@ -6,7 +6,6 @@
 #include "LoginDlg.h"
 #include "InformationDlg.h"
 #include "AboutDlg.h"
-#include "SoftwareKey2.h"
 #include "MSGBoxDlg.h"
 #include "LanguageDlg.h"
 #include "ClockDlg.h"

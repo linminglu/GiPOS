@@ -280,9 +280,9 @@ void CReportDlg::ShowReport()
 		{
 			CODBCFieldInfo fieldinfo;
 			rs.GetODBCFieldInfo(i,fieldinfo);
-			m_strResult.Append(FormatString(fieldinfo.m_strName,field_len[i]));
+			//m_strResult.Append(FormatString(fieldinfo.m_strName,field_len[i]));
 		}
-		m_strResult.Append(_T("\r\n"));
+		//m_strResult.Append(_T("\r\n"));
 		while (!rs.IsEOF())
 		{
 			CString fvalue;

@@ -179,7 +179,6 @@
 #define IDS_PHONE                       217
 #define IDS_RECHARGE                    218
 #define IDS_AMOUNTEXCEED                219
-#define IDD_SERVERIPSETTING             219
 #define IDS_GOTOCHK                     219
 #define IDS_PRICE                       220
 #define IDS_BOOKED                      221
@@ -456,6 +455,7 @@
 #define IDS_LEVEL                       450
 #define IDD_TIPSADD                     450
 #define IDS_PASSWORD                    451
+#define IDD_DISPLAYSET                  451
 #define IDS_PRINTSERVERNOTRUN           452
 #define IDS_PRINT_ERROR_OPENFAIL        453
 #define IDS_PRINT_ERROR_NETFAIL         454
@@ -472,8 +472,11 @@
 #define IDS_SWITCHFAIL                  465
 #define IDS_TIPS                        466
 #define IDS_NOTALLOWTBL                 467
+#define IDS_PRINT_SERIAL                468
+#define IDS_SKIP                        469
 #define IDC_EDIT1                       1000
 #define IDC_LIST1                       1001
+#define IDC_EDIT8                       1001
 #define IDC_LIST2                       1002
 #define IDC_LIST3                       1003
 #define IDC_EDIT2                       1004
@@ -502,6 +505,7 @@
 #define IDC_BUTTON_NUM                  1036
 #define IDC_EDIT_STATE                  1036
 #define IDC_EDIT_LEVEL                  1037
+#define IDC_BUTTON_PRINT_SERIAL         1037
 #define IDC_STATIC1                     1038
 #define IDC_STATIC6                     1039
 #define IDC_REFRESH                     1042
@@ -547,7 +551,6 @@
 #define IDC_EDITU5                      1078
 #define IDC_STATIC_URL                  1078
 #define IDC_STATIC_NUM                  1078
-#define IDC_IPADDRESS1                  1079
 #define IDC_STATIC3                     1080
 #define IDC_STATIC4                     1081
 #define IDC_STATIC5                     1082
@@ -581,6 +584,11 @@
 #define IDC_STATIC_TABLE1               1111
 #define IDC_STATIC_REMARK               1112
 #define IDC_STATIC_LOGO                 1113
+#define IDC_CHECK2                      1115
+#define IDC_SPIN1                       1116
+#define IDC_SPIN2                       1117
+#define IDC_SPIN3                       1118
+#define IDC_CHECK3                      1119
 #define IDC_DYNAMIC_CTRL                2000
 #define IDC_TABLE0                      2000
 #define IDC_BUTTON0                     3000
@@ -724,6 +732,8 @@
 #define IDC_BUTTON_RESERVE              3222
 #define IDC_BUTTON_SYNC                 3223
 #define IDC_BUTTON_EXTERNAL             3224
+#define IDC_BUTTON_CASHREPORT           3225
+#define IDC_BUTTON_DISPLAYSET			3226
 #define IDC_CLASS_BUTTON                4000
 #define IDC_SLU_BUTTON                  4100
 #define IDC_BUTTON_NEXTPAGE             5000
@@ -734,7 +744,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        450
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1114
+#define _APS_NEXT_CONTROL_VALUE         1120
 #define _APS_NEXT_SYMED_VALUE           296
 #endif
 #endif

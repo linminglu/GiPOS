@@ -16,7 +16,7 @@ CustomerSearchDlg2::CustomerSearchDlg2(CWnd* pParent /*=NULL*/)
 	: CDialog(CustomerSearchDlg2::IDD, pParent)
 	, m_strResult(_T(""))
 {
-
+	m_bIgnore=FALSE;
 }
 
 CustomerSearchDlg2::~CustomerSearchDlg2()
@@ -29,7 +29,7 @@ void CustomerSearchDlg2::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT1, m_edit);
 	DDX_Control(pDX, IDC_LIST1, m_list);
 	DDX_Control(pDX, IDC_BUTTON_OK, m_btOK);
-	DDX_Control(pDX, IDCANCEL, m_btCancel);
+	DDX_Control(pDX, IDCANCEL2, m_btCancel);
 	DDX_Control(pDX, IDC_BUTTON_ADD, m_addButton);
 	DDX_Control(pDX, IDC_BUTTON_EDIT, m_editButton);
 	DDX_Control(pDX, IDC_BUTTON_SOFTKEY, m_softButton);
@@ -46,6 +46,7 @@ BEGIN_MESSAGE_MAP(CustomerSearchDlg2, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_LOCATION, &CustomerSearchDlg2::OnBnClickedButtonLocation)
 	ON_BN_CLICKED(IDC_BUTTON_SOFTKEY, &CustomerSearchDlg2::OnBnClickedButtonSoftkey)
 	ON_WM_PAINT()
+	ON_BN_CLICKED(IDCANCEL2, &CustomerSearchDlg2::OnBnClickedCancel)
 END_MESSAGE_MAP()
 
 
@@ -67,8 +68,11 @@ BOOL CustomerSearchDlg2::OnInitDialog()
 		SetFont(&theLang.m_dialogFont);
 		CWnd* pCtrl=GetDlgItem(IDC_BUTTON_OK);
 		theLang.TranslateDlgItem(pCtrl,IDS_OK);
-		pCtrl=GetDlgItem(IDCANCEL);
-		theLang.TranslateDlgItem(pCtrl,IDS_CANCEL);
+		pCtrl=GetDlgItem(IDCANCEL2);
+		if(m_bIgnore)
+			theLang.TranslateDlgItem(pCtrl,IDS_SKIP);
+		else
+			theLang.TranslateDlgItem(pCtrl,IDS_CANCEL);
 		pCtrl=GetDlgItem(IDC_BUTTON_ADD);
 		theLang.TranslateDlgItem(pCtrl,IDS_ADDCUS);
 		pCtrl=GetDlgItem(IDC_BUTTON_EDIT);
@@ -223,7 +227,6 @@ void CustomerSearchDlg2::OnBnClickedButtonLocation()
 
 void CustomerSearchDlg2::OnOK()
 {
-	int i=0;
 }
 
 void CustomerSearchDlg2::OnBnClickedButtonSoftkey()
@@ -242,4 +245,10 @@ void CustomerSearchDlg2::OnPaint()
 		dc.FillSolidRect(rect,DEFALUT_BACKGROUND_COLOR);
 		CDialog::OnPaint();
 	}
+}
+
+void CustomerSearchDlg2::OnBnClickedCancel()
+{
+	m_bIgnore=FALSE;
+	OnCancel();
 }
