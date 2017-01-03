@@ -33,7 +33,8 @@ public:
 		RIGHT,
 		UP,
 		DOWN,
-		RIGHTDOWN
+		RIGHTDOWN,
+		RIGHTUP
 	};
 	CString m_strBottom;//сроб╫г╠Йв╒
 	int m_textPos;

@@ -35,10 +35,12 @@ protected:
 	CFont mFont;
 	BOOL m_bSwipe;//判断键盘输入或刷卡
 	ProgressDlg *mProgDlg;//进度条窗口
+	CRoundButton2* m_pSyncBtn;
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 	DECLARE_MESSAGE_MAP()
 public:
 	void ChangeEditMode(int mode);
+	int CheckForUpdate();
 	void OnSetActive();
 	void UpdateHintData();
 	void Signin(int type=0);

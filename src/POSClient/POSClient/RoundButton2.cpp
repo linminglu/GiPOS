@@ -186,6 +186,13 @@ void CRoundButton2::PrepareIconRect( BOOL bHasText,
 			int nImageHeight = rectImage.bottom - rectImage.top;
 			rectImage.top += nImageHeight - dwHeight;
 		}
+		else if (m_eIconAlignment == CRoundButton2::RIGHTUP)
+		{//срио
+			rectText.right = nTextWidth;
+			rectImage.left = nTextWidth-dwWidth;
+			int nImageHeight = rectImage.bottom - rectImage.top;
+			rectImage.top = 0;
+		}
 		else//д╛хо©©вС
 		{
 			//rectText.right = nTextWidth - 3;

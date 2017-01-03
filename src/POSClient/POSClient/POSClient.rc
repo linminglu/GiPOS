@@ -157,6 +157,7 @@ IDR_MAINFRAME           ICON                    "res\\icon_gicater.ico"
 #endif
 IDI_ICON_MAKE           ICON                    "res\\icon1.ico"
 IDI_ICON_WECHAT         ICON                    "res\\wechat.ico"
+IDI_ICON_NEW            ICON                    "res\\icon_new.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -28,6 +28,7 @@ CLoginDlg::CLoginDlg(CWnd* pParent /*=NULL*/)
 {
 	m_bClock=FALSE;
 	m_bSwipe=FALSE;
+	m_pSyncBtn=NULL;
 }
 
 CLoginDlg::~CLoginDlg()
@@ -372,11 +373,12 @@ BOOL CLoginDlg::OnInitDialog()
 		GetDlgItem(IDCANCEL)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_BUTTON_SHUTDOWN)->ShowWindow(SW_HIDE);
 	}
+	
+	m_pSyncBtn=(CRoundButton2*)GetDlgItem(IDC_BUTTON_SYNC);
 	if(!theApp.IS_SERVER)
 	{
-		CWnd* pCtrl=GetDlgItem(IDC_BUTTON_SYNC);
-		if(pCtrl)
-			pCtrl->ShowWindow(SW_HIDE);
+		if(m_pSyncBtn)
+			m_pSyncBtn->ShowWindow(SW_HIDE);
 	}
 	mProgDlg=new ProgressDlg;
 	mProgDlg->Create(IDD_PROGRESS,this);
@@ -384,6 +386,8 @@ BOOL CLoginDlg::OnInitDialog()
 	SetTimer(1000,5000,NULL);//每隔5秒刷新时间显示
 //	if(theApp.m_bUSB)
 //		SetTimer(1001,3600000,NULL);//每隔1小时签到，检查软件注册
+	if(theApp.IS_SERVER&&m_pSyncBtn&&theApp.m_editMode==1)
+		SetTimer(1002,1000,NULL);
 	CTime time=CTime::GetCurrentTime();
 	CString strTime=time.Format(_T("%Y-%m-%d %H:%M"));
 	m_timeCtrl.SetWindowText(strTime);
@@ -633,24 +637,24 @@ void CLoginDlg::OnBnClickedButtonWebVip()
 ************************************************************************/
 void CLoginDlg::OnBnClickedBackup()
 {
-	LPCTSTR lpParameters=NULL;
-	if (theLang.m_strLang.Find(_T("English"))>=0)
-	{
-		lpParameters=_T("backupdb lang=1");
-	}
-	else if (theLang.m_strLang.Find(_T("简体"))>=0)
-	{
-		lpParameters=_T("backupdb=1 lang=0");
-	}
-	else if (theLang.m_strLang.Find(_T("繁體"))>=0)
-	{
-		lpParameters=_T("backupdb=1 lang=2");
-	}
-	else
-	{
-		lpParameters=_T("backupdb");
-	}
-	ShellExecute(GetSafeHwnd(), NULL, _T("POSManager.exe"), lpParameters, NULL,SW_NORMAL);
+// 	LPCTSTR lpParameters=NULL;
+// 	if (theLang.m_strLang.Find(_T("English"))>=0)
+// 	{
+// 		lpParameters=_T("backupdb lang=1");
+// 	}
+// 	else if (theLang.m_strLang.Find(_T("简体"))>=0)
+// 	{
+// 		lpParameters=_T("backupdb=1 lang=0");
+// 	}
+// 	else if (theLang.m_strLang.Find(_T("繁體"))>=0)
+// 	{
+// 		lpParameters=_T("backupdb=1 lang=2");
+// 	}
+// 	else
+// 	{
+// 		lpParameters=_T("backupdb");
+// 	}
+// 	ShellExecute(GetSafeHwnd(), NULL, _T("POSManager.exe"), lpParameters, NULL,SW_NORMAL);
 }
 void CLoginDlg::OnBnClickedServerIpSetting()
 {
@@ -940,10 +944,9 @@ void CLoginDlg::ChangeEditMode(int mode)
 
 void CLoginDlg::OnBnClickedSync()
 {
-	return;
-	//暂不开放
 	if(!theApp.IS_SERVER)
 		return;
+	m_pSyncBtn->SetIcon((HICON)NULL,CRoundButton2::RIGHTUP);
 	OpenDatabase();
 	CString strSQL=_T("SELECT edit_mode FROM webreport_setting");
 	CRecordset rs(&theDB);
@@ -956,18 +959,112 @@ void CLoginDlg::OnBnClickedSync()
 		mode=variant.m_iVal;
 	}
 	rs.Close();
-	if(mode!=1)
-	{//本地模式，提示切换
-		if(POSMessageBox(IDS_CLOUDHINT,MB_YESNO)==IDCANCEL)
-			return;
-		//ChangeEditMode(1);
+	if(mode==1)
+	{
 		mProgDlg->Start();
-		mProgDlg->m_nStep=3;//预计30秒
-		AfxBeginThread(ChangeToCloudThread,this);
-		return;
+		AfxBeginThread(DownloadThread,this);
 	}
-	mProgDlg->Start();
-	AfxBeginThread(DownloadThread,this);
+	
+}
+/************************************************************************
+* 函数介绍：检查数据库更新
+* 输入参数：
+* 输出参数：
+* 返回值  ：下次查询等待时间(秒)
+************************************************************************/
+int CLoginDlg::CheckForUpdate()
+{
+	CRecordset rs(&theDB);
+	CString strSQL;
+	CString strVer;
+	strSQL.Format(_T("SELECT db_version FROM total_statistics"));
+	rs.Open(CRecordset::forwardOnly,strSQL);
+	if (!rs.IsEOF())
+	{
+		rs.GetFieldValue((short)0,strVer);
+	}
+	rs.Close();
+	JSONVALUE root;
+	root[_T("db_version")] = strVer;
+	root[_T("guid")]=theApp.m_strResId;
+	JSONVALUE versions;
+	strSQL.Format(_T("SELECT * FROM www_version"));
+	rs.Open(CRecordset::forwardOnly,strSQL);
+	if(!rs.IsEOF())
+	{
+		CDBVariant variant;
+		for(int i=0;i<rs.GetODBCFieldCount();i++)
+		{
+			CODBCFieldInfo   fieldinfo;
+			variant.m_lVal=0;
+			rs.GetODBCFieldInfo(i,fieldinfo);
+			rs.GetFieldValue(fieldinfo.m_strName,variant);
+			versions[fieldinfo.m_strName]=variant.m_lVal;
+		}
+	}
+	root["versions"] = versions;
+	CString strURL,strValue;
+	CInternetSession session;
+	session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 10);
+	session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
+	session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
+	CHttpConnection* pConnection = session.GetHttpConnection(m_strCloudURL,(INTERNET_PORT)80);
+	CString szHeaders   = L"Content-Type: application/x-www-form-urlencoded;";
+	std::string str;
+	root.ToString(str);
+	int wcsLen0 =str.length();
+	// aes encrypt
+	AES_KEY aes_enc_ctx;
+	unsigned char ivec[AES_BLOCK_SIZE]={'0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'};
+	int len = 0;
+	if ((wcsLen0 + 1) % AES_BLOCK_SIZE == 0) {
+		len = wcsLen0 + 1;
+	} else {
+		len = ((wcsLen0 + 1) / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
+	}
+	unsigned char *encrypt_text=(unsigned char *) new char[len];
+	AES_set_encrypt_key(theApp.enctrypkey, 128, &aes_enc_ctx);
+	AES_cbc_encrypt((const unsigned char *)str.c_str(), encrypt_text, len, &aes_enc_ctx, ivec, AES_ENCRYPT); 
+	strURL.Format(_T("/client_download/?checkupdate=1"));
+	CHttpFile* pFile = pConnection->OpenRequest(CHttpConnection::HTTP_VERB_POST,strURL);
+	pFile->SendRequest(szHeaders,szHeaders.GetLength(),(LPVOID)encrypt_text,len);
+	delete encrypt_text;
+	DWORD dwStatus;
+	pFile->QueryInfoStatusCode(dwStatus);
+	if(dwStatus != HTTP_STATUS_OK)
+	{
+		LOG4CPLUS_ERROR(log_pos,"Connect "<<(LPCTSTR)m_strCloudURL<<":"<<" status code="<<dwStatus);
+		session.Close();
+		pFile->Close();
+		delete pFile;
+		mProgDlg->Stop();
+		return 2000;
+	}
+	CString strHeader;
+	pFile->QueryInfo(HTTP_QUERY_CONTENT_TYPE,strHeader);
+	if(strHeader.CompareNoCase(_T("application/json"))==0)
+	{
+		char buf[1024]={0};
+		pFile->ReadString((LPTSTR)buf,sizeof(buf)-1);
+		wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, buf, strlen(buf), NULL, 0);
+		TCHAR* sz1 = new TCHAR[wcsLen0 + 1];
+		::MultiByteToWideChar(CP_UTF8, NULL, buf, -1, sz1, wcsLen0);
+		sz1[wcsLen0] = '\0';
+		CString jStr;
+		JSONVALUE::Unescape(sz1,jStr);
+		delete sz1;
+		root.Parse((LPCTSTR)jStr,JSON_FLAG_LOOSE);
+		int status = root[_T("has_update")].asInt();
+		if (status > 0)
+		{//有更新
+			m_pSyncBtn->SetIcon(IDI_ICON_NEW,CRoundButton2::RIGHTUP);
+			return -1;
+		}
+		int wait=root[_T("wait_minutes")].asInt();
+		if(wait<1)
+			wait=10;
+		return wait*60;
+	}
 }
 void CLoginDlg::OnTimer(UINT_PTR nIDEvent)
 {
@@ -981,29 +1078,19 @@ void CLoginDlg::OnTimer(UINT_PTR nIDEvent)
 			InvalidateRect(m_timeRect); 
 		}
 	}
-	else if (nIDEvent==1001)
+	else if(nIDEvent==1002)
 	{
-		if(theApp.m_bUSB&&theApp.CheckUsbKey()==FALSE)
-		{
-			POSMessageBox(IDS_NOTREG);
-			ExitProcess(0);
+		if(theApp.m_pMain->GetActiveIndex()==DLG_LOGIN)
+		{//只有在登录界面才刷新
+			int wait=CheckForUpdate();
+			KillTimer(1002);
+			if(wait>0)
+			{
+				SetTimer(1002,wait*1000,NULL);
+			}
+			
 		}
-#ifdef CHECK_SIGNATUR
-		CPOSClientApp* pApp=((CPOSClientApp*)AfxGetApp());
-		if (pApp->Checkin()==FALSE)
-		{
-			ExitProcess(0);
-		}
-		CSoftwareKey key;
-		CString strExpire;
-		if(key.VerifySoftwareKey(_T("license.key"),strExpire)!=0)
-		{
-			POSMessageBox(_T("软件未注册！"));
-			ExitProcess(0);
-		}
-#endif
 	}
- 
 	CPosPage::OnTimer(nIDEvent);
 }
 

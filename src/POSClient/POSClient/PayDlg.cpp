@@ -3123,6 +3123,9 @@ BOOL PayDlg::PreTranslateMessage(MSG* pMsg)
 		case VK_F12:
 			OnBnClickedPrePrint();
 			return TRUE;
+		case VK_DECIMAL:
+			OnBnClickedButtonDot();
+			return TRUE;
 		case VK_UP:
 			{
 				CListBoxEx* ptrDetailList=&m_checkDlg[m_TabCtrl.GetActivePageIndex()].m_ctrlDetailList;

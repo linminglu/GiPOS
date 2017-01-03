@@ -1172,6 +1172,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\icon_new.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\res\icon_num.ico"
 				>
 			</File>

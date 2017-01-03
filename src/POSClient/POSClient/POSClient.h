@@ -189,6 +189,7 @@ public:
 	int m_nRVC;//RVC id,当前桌的区域
 	CString m_strRVC;//RVC name
 	CString m_strResName;
+	int m_editMode;//0 本地模式(新安装) 1-网络模式 2-本地模式
 	int m_nCheckNum;//本机单号
 	long m_nOrderHeadid;//序列号
 	int m_nGuests;

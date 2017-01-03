@@ -425,7 +425,7 @@ BOOL CPOSClientApp::InitInstance()
 	}
 	rs.Close();
 	splash.SetProgress( 60, IDS_CHECKREG);
-	strSQL.Format(_T("SELECT cr_res_id,cr_url FROM webreport_setting"));
+	strSQL.Format(_T("SELECT cr_res_id,cr_url,edit_mode FROM webreport_setting"));
 	if(rs.Open(CRecordset::forwardOnly,strSQL))
 	{
 		if (!rs.IsEOF())
@@ -435,6 +435,8 @@ BOOL CPOSClientApp::InitInstance()
 			m_strResId.Format(_T("%s"),strVal);
 			rs.GetFieldValue(_T("cr_url"),strVal);
 			m_strCloudURL.Format(_T("%s"),strVal);
+			rs.GetFieldValue(_T("edit_mode"),strVal);
+			m_editMode=_wtoi(strVal);
 		}
 		rs.Close();
 	}

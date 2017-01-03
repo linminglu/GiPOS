@@ -454,6 +454,8 @@
 #define IDD_RESERVE                     449
 #define IDS_LEVEL                       450
 #define IDD_TIPSADD                     450
+#define IDI_ICON2                       450
+#define IDI_ICON_NEW                    450
 #define IDS_PASSWORD                    451
 #define IDD_DISPLAYSET                  451
 #define IDS_PRINTSERVERNOTRUN           452
@@ -733,7 +735,7 @@
 #define IDC_BUTTON_SYNC                 3223
 #define IDC_BUTTON_EXTERNAL             3224
 #define IDC_BUTTON_CASHREPORT           3225
-#define IDC_BUTTON_DISPLAYSET			3226
+#define IDC_BUTTON_DISPLAYSET           3226
 #define IDC_CLASS_BUTTON                4000
 #define IDC_SLU_BUTTON                  4100
 #define IDC_BUTTON_NEXTPAGE             5000
@@ -742,7 +744,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        450
+#define _APS_NEXT_RESOURCE_VALUE        451
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1120
 #define _APS_NEXT_SYMED_VALUE           296
