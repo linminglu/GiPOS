@@ -20,9 +20,10 @@
 #include "ManagerDlg.h"
 #include "ViewCheckDlg.h"
 #include "WebDlg.h"
+#include "AddPosDlg.h"
 #include <GdiPlus.h>
 #include "SplashWnd.h"
-#include "WMI_DeviceQuery.h"
+#include "HardwareInfo.h"
 #include "cefclient/CefBrowserApp.h"
 
 #include "Winspool.h"
@@ -35,7 +36,8 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-//#define CHECK_SIGNATUR
+
+#define WEB_VERSION
 
 // CPOSClientApp
 
@@ -50,7 +52,6 @@ CPOSClientApp::CPOSClientApp()
 {
 	// 将所有重要的初始化放置在 InitInstance 中
 	m_bDirty=TRUE;
-	m_bUSB=FALSE;
 	m_bRefund=FALSE;
 	m_nDeviceId=1;
 	m_bQuickService=FALSE;
@@ -88,7 +89,6 @@ extern UINT CODE_PAGE;
 extern UINT LF_CHARSET;
 extern CString LF_FaceName;
 extern CString thePrintDir;
-extern CString m_strCloudURL;
 BOOL CPOSClientApp::m_bQuickService=FALSE;
 HINSTANCE hSQBDll;//收钱吧接口
 typedef const char* (__stdcall *pfunc)(const char* cmd);
@@ -126,6 +126,23 @@ BOOL OpenDatabase(BOOL bRecounect)
 	}
 	return TRUE;
 }
+
+CString GetFiledValue(LPCTSTR strSQL)
+{
+	CRecordset rs(&theDB);
+	if(rs.Open(CRecordset::forwardOnly,strSQL))
+	{
+		if(!rs.IsEOF())
+		{
+			CString strKey;
+			rs.GetFieldValue((short)0,strKey);
+			return strKey;
+		}
+	}
+	rs.Close();
+	return _T("");
+}
+
 BOOL HttpPost(LPCTSTR server,int port,LPCTSTR url,JSONVALUE& request,JSONVALUE& response)
 {
 	try
@@ -169,13 +186,33 @@ BOOL HttpPost(LPCTSTR server,int port,LPCTSTR url,JSONVALUE& request,JSONVALUE& 
 			delete pFile;
 			return FALSE;
 		}
+		CString strHeader;
+		pFile->QueryInfo(HTTP_QUERY_CONTENT_TYPE,strHeader);
 		char buf[4096]={0};
-		pFile->ReadString((LPTSTR)buf,sizeof(buf)-1);
+		TCHAR* sz1=NULL;
+		if(strHeader.CompareNoCase(_T("text/plain"))==0)
+		{//需要解密
+			len=pFile->Read(buf,sizeof(buf));
+			AES_KEY aes_dec_ctx;
+			unsigned char ivec[AES_BLOCK_SIZE]={'0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'};
+			unsigned char *plain_text=(unsigned char *) new char[len];
+			AES_set_decrypt_key(theApp.enctrypkey, 128, &aes_dec_ctx);
+			AES_cbc_encrypt((const unsigned char *)buf, plain_text, len, &aes_dec_ctx, ivec, AES_DECRYPT);
+			wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, (char*)plain_text, strlen((char*)plain_text), NULL, 0);
+			sz1 = new TCHAR[wcsLen0 + 1];
+			::MultiByteToWideChar(CP_UTF8, NULL, (char*)plain_text, -1, sz1, wcsLen0);
+			sz1[wcsLen0] = '\0';
+			delete plain_text;
+		}
+		else
+		{
+			pFile->ReadString((LPTSTR)buf,sizeof(buf)-1);
+			wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, buf, strlen(buf), NULL, 0);
+			sz1 = new TCHAR[wcsLen0 + 1];
+			::MultiByteToWideChar(CP_UTF8, NULL, buf, -1, sz1, wcsLen0);
+			sz1[wcsLen0] = '\0';
+		}
 		pFile->Close();
-		wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, buf, strlen(buf), NULL, 0);
-		TCHAR* sz1 = new TCHAR[wcsLen0 + 1];
-		::MultiByteToWideChar(CP_UTF8, NULL, buf, -1, sz1, wcsLen0);
-		sz1[wcsLen0] = '\0';
 		CString jStr;
 		JSONVALUE::Unescape(sz1,jStr);
 		delete sz1;
@@ -247,6 +284,7 @@ int ScaleY(int pt)
 	return MulDiv(pt, _dpiY, 96); 
 } 
 // CPOSClientApp 初始化
+CSplashWnd splash;
 
 BOOL CPOSClientApp::InitInstance()
 {
@@ -296,7 +334,6 @@ BOOL CPOSClientApp::InitInstance()
 	CString str2;
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
-	CSplashWnd splash;
 	Gdiplus::Image* pImage = Gdiplus::Image::FromFile(L"Picture\\splash.jpg");
 	if (pImage)
 	{
@@ -307,7 +344,6 @@ BOOL CPOSClientApp::InitInstance()
 		splash.SetAutoProgress(0, 30, 3);
 	}
 	TCHAR cPath[200];
-	//GetMacAddress();
 	//setlocale(LC_ALL, "En_US");
 	//LOG4CPLUS 记录中文用到
 	std::locale::global(std::locale::classic());
@@ -363,10 +399,28 @@ BOOL CPOSClientApp::InitInstance()
 		ShellExecute(NULL, NULL, _T("ServerIpSetting.exe"), NULL, NULL,SW_NORMAL);
 		return FALSE;
 	}
-	ResetAutoIncrement();
-	//从macros表获取全局的设置
 	CString strSQL;
 	CRecordset rs(&theDB);
+	strSQL.Format(_T("SELECT cr_res_id,cr_url,edit_mode FROM webreport_setting"));
+	if(rs.Open(CRecordset::forwardOnly,strSQL))
+	{
+		if (!rs.IsEOF())
+		{
+			CString strVal;
+			rs.GetFieldValue(_T("cr_res_id"),strVal);
+			m_strResId.Format(_T("%s"),strVal);
+			rs.GetFieldValue(_T("cr_url"),strVal);
+			m_strCloudURL.Format(_T("%s"),strVal);
+			rs.GetFieldValue(_T("edit_mode"),strVal);
+			m_editMode=_wtoi(strVal);
+		}
+		rs.Close();
+	}
+#if defined(WEB_VERSION)
+	CheckInit();
+#endif
+	ResetAutoIncrement();
+	//从macros表获取全局的设置
 	strSQL.Format(_T("SELECT db_version FROM total_statistics"));
 	if(rs.Open(CRecordset::forwardOnly,strSQL))
 	{
@@ -425,29 +479,89 @@ BOOL CPOSClientApp::InitInstance()
 	}
 	rs.Close();
 	splash.SetProgress( 60, IDS_CHECKREG);
-	strSQL.Format(_T("SELECT cr_res_id,cr_url,edit_mode FROM webreport_setting"));
+	
+	
+
+//验证是否注册
+#if defined(WEB_VERSION)
+	int reg_pos=0;
+	strSQL.Format(_T("SELECT AES_DECRYPT(pos,\"%s1\") FROM pos_keys"),m_strResId);
 	if(rs.Open(CRecordset::forwardOnly,strSQL))
 	{
 		if (!rs.IsEOF())
 		{
 			CString strVal;
-			rs.GetFieldValue(_T("cr_res_id"),strVal);
-			m_strResId.Format(_T("%s"),strVal);
-			rs.GetFieldValue(_T("cr_url"),strVal);
-			m_strCloudURL.Format(_T("%s"),strVal);
-			rs.GetFieldValue(_T("edit_mode"),strVal);
-			m_editMode=_wtoi(strVal);
+			rs.GetFieldValue((short)0,strVal);
+			int index=strVal.Find('|');
+			reg_pos=_wtoi(strVal.Left(index));
+			if(reg_pos<=0)
+			{
+				m_bNotReg=TRUE;
+				POSMessageBox(IDS_NOTREG);
+			}
+			else
+			{
+				CString strExpire=strVal.Right(strVal.GetLength()-index-1);
+				CTime timeNow=CTime::GetCurrentTime();
+				CTime time(_wtoi(strExpire.Mid(0,4)),_wtoi(strExpire.Mid(5,2)),_wtoi(strExpire.Mid(8,2)),0,0,0);
+				CTimeSpan span=time-timeNow;
+				if(span.GetDays()<=30)
+				{
+					CString hint,str2;
+					theLang.LoadString(str2,IDS_EXPIER);
+					hint.Format(str2,span.GetDays());
+					POSMessageBox(hint);
+				}
+				if(span.GetDays()<=0)
+					m_bNotReg=TRUE;
+				
+			}
 		}
 		rs.Close();
 	}
-	//验证是否注册
-// 	if(CheckUsbKey())
-// 	{
-// 		m_bNotReg=FALSE;
-// 	}
-// 	else
-	{
-#if defined(GICATER_VERSION)
+	if(reg_pos>0)
+	{//检查注册数
+		strSQL.Format(_T("SELECT COUNT(*) FROM user_workstations WHERE opos_device_name IS NOT NULL"));
+		if(rs.Open(CRecordset::forwardOnly,strSQL))
+		{
+			if (!rs.IsEOF())
+			{
+				CString strVal;
+				rs.GetFieldValue((short)0,strVal);
+				int count=_wtoi(strVal);
+				if(reg_pos<count)
+				{
+					m_bNotReg=TRUE;
+					POSMessageBox(IDS_NOTVALID);
+				}
+			}
+		}
+		rs.Close();
+		//检查更新时间
+		strSQL.Format(_T("SELECT datediff(NOW(),cr_last_endtime) FROM webreport_setting"));
+		if(rs.Open(CRecordset::forwardOnly,strSQL))
+		{
+			if (!rs.IsEOF())
+			{
+				CString strVal;
+				rs.GetFieldValue((short)0,strVal);
+				int days=_wtoi(strVal);
+				if(days>30)
+				{
+					m_bNotReg=TRUE;
+					POSMessageBox(IDS_NEED_ACTIVE);
+				}
+				else if(days>15)
+				{
+					POSMessageBox(IDS_NEED_ACTIVE);
+				}
+			}
+			rs.Close();
+		}
+	}
+	
+#else
+	#if defined(GICATER_VERSION)
 		CSoftwareKey softkey;
 		softkey.m_nKeyType=2;
 		CString strExpire;
@@ -483,12 +597,12 @@ BOOL CPOSClientApp::InitInstance()
 				POSMessageBox(hint);
 			}
 		}
-#else
+	#else
 
 		CSoftwareKey softkey;
-#ifdef EN_VERSION
+	  #ifdef EN_VERSION
 		softkey.m_nKeyType=3;
-#endif
+	  #endif
 		CString strExpire;
 		TCHAR LocalDir[MAX_PATH]; 
 		SHGetSpecialFolderPath(NULL,LocalDir,CSIDL_LOCAL_APPDATA,0);
@@ -529,14 +643,14 @@ BOOL CPOSClientApp::InitInstance()
 				POSMessageBox(hint);
 			}
 		}
+	#endif
 #endif
-	}
 	splash.SetProgress( 80, IDS_INITPRINT);
 	//初始化打印目录
 	InitPrintService();
 	if (GetDeviceID()==FALSE)
 	{
-		AfxMessageBox(_T("Get device id failed!"),MB_SYSTEMMODAL);
+		AfxMessageBox(_T("Get device config fail!"),MB_SYSTEMMODAL);
 		return FALSE;
 	}
 	//查找并启动打印进程
@@ -670,24 +784,6 @@ BOOL CPOSClientApp::InitInstance()
 		dlg.AddPage(pPage);
 	}
 	finder.Close();
-	//	dlg.AddPage(&m_dlgManager);
-	//	LOG4CPLUS_DEBUG(log_pos,"Initialize OK!");
-	//验证签名是否修改
-#ifdef CHECK_SIGNATUR
-	CString   szPath;   
-	GetModuleFileName(NULL,szPath.GetBuffer(MAX_PATH),MAX_PATH);   
-	szPath.ReleaseBuffer();
-	if(CheckSignature(szPath,_T("SIGNATURE\\POSClient.sig"))==FALSE)
-	{
-		LOG4CPLUS_ERROR(log_pos,"POSClient.exe Signature Check Failed");
-		return FALSE;
-	}
-	if(CheckSignature(_T("libeay32.dll"),_T("SIGNATURE\\libeay32.sig"))==FALSE)
-	{
-		LOG4CPLUS_ERROR(log_pos,"libeay32.dll Signature Check Failed");
-		return FALSE;
-	}
-#endif
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
@@ -739,156 +835,7 @@ static RSA* OpenPubKey(const char* fileName)
 	rsaK=PEM_read_bio_RSAPublicKey(BP,NULL,NULL,NULL);
 	return rsaK;
 }
-/************************************************************************
-* 函数介绍：签到
-* 输入参数：
-* 输出参数：
-* 返回值  ：TRUE  -签到成功
-			FALSE -发生异常
-************************************************************************/
-BOOL CPOSClientApp::Checkin()
-{
-	try
-	{
-		CDatabase db;
-		db.OpenEx(_T("DSN=agile_pos"));
-		CRecordset rs( &db );
-		CString strSQL;
-		CSoftwareKey key;
-		CString userid=key.GenUserID();
-		strSQL.Format(_T("SELECT * FROM device_checkin WHERE device_id=\'%s\';"),userid);
-		if(!rs.Open(-1,strSQL))
-		{
-			LOG4CPLUS_ERROR(log_pos,"CRecordset Open Failed");
-			return FALSE;
-		}
-		CTime time=CTime::GetCurrentTime();
-		CString strTime2=time.Format(_T("%Y%m%d%H"));
-		if (!rs.IsEOF())
-		{
-			CString strTime1;
-			rs.GetFieldValue(_T("last_checkin_time"),strTime1);
-			if (strTime1.Compare(strTime2)>0)
-			{
-				LOG4CPLUS_ERROR(log_pos,"System time not match");
-				return FALSE;
-			}
-			//更新签到时间
-			strSQL.Format(_T("UPDATE device_checkin SET last_checkin_time=\'%s\' WHERE device_id=\'%s\';"),strTime2,userid);
-		}
-		else
-		{
-			strSQL.Format(_T("INSERT INTO device_checkin(device_id,last_checkin_time) ")
-				_T(" VALUES(\'%s\',\'%s\');"),userid,strTime2);
-		}
-		
-		db.ExecuteSQL(strSQL);
-	}
-	catch(CDBException* e )
-	{
-		LOG4CPLUS_ERROR(log_pos,(LPCTSTR)e->m_strError);
-		e->Delete();
-		return FALSE;
-	}
-	return TRUE;
-}
-/************************************************************************
-* 函数介绍：验证程序签名是否匹配
-* 输入参数：filePath	-要验证的文件
-			sigPath		-签名文件路径
-* 输出参数：
-* 返回值  ：TRUE  -签名正常
-			FALSE -签名不匹配
-************************************************************************/
-BOOL CPOSClientApp::CheckSignature(CString filePath,CString sigPath)
-{
-	LONG	ret = S_OK;
-	DWORD	dwStatus = 0;
-	BYTE	bySign[512];
-	DWORD	dwSignLen = sizeof(bySign);
-	CString strSrcFilePath;
-	
- 	CFile myCFile;
- 	if (!myCFile.Open(sigPath, CFile::modeRead))
- 	{
- 		return FALSE;
- 	}
-	dwSignLen = myCFile.Read(bySign, 512);
-	myCFile.Close();
 
-	if(pubKey==NULL)
-		pubKey=OpenPubKey("public.pem");
-	if (pubKey==NULL)
-	{
-		return FALSE;
-	}
-	DWORD dwHashLen = SHA_DIGEST_LENGTH;
-	BYTE byHash[SHA_DIGEST_LENGTH];
-	if (!AppLibCrypt_HASH_SHA1_FILE(filePath, byHash, dwHashLen))
-	{
-		return FALSE;
-	}
-	int intLen = RSA_verify(NID_sha1, byHash, dwHashLen, bySign, dwSignLen, pubKey);
-	if (intLen != 1)
-	{
-		return FALSE;
-	}
-	return TRUE;
-}
-BOOL CPOSClientApp::AppLibCrypt_HASH_SHA1_FILE(CString strFilePath, BYTE* byOutPut, DWORD &dwOutPutLen)
-{
-	FILE* fin=0;
-	try
-	{
-		SHA_CTX		c;
-		BYTE		md[SHA_DIGEST_LENGTH];
-
-		if (!byOutPut)
-		{
-			dwOutPutLen = SHA_DIGEST_LENGTH;
-			return TRUE;
-		}
-
-		if (dwOutPutLen < SHA_DIGEST_LENGTH)
-		{
-			dwOutPutLen = SHA_DIGEST_LENGTH;
-			return FALSE;
-		}
-
-		_wfopen_s(&fin,strFilePath, L"rb");
-		if (!fin)
-			return FALSE;
-
-		SHA1_Init(&c);
-		while (!feof(fin))
-		{
-			char			buff[1024];
-			unsigned long	len;
-			size_t			slBlockLen = 1024;
-
-			len = (unsigned long)fread(buff, (size_t)1, slBlockLen, fin);		
-			SHA1_Update(&c, buff, len);
-		}
-		SHA1_Final(md, &c);
-		if (fin)
-		{
-			fclose(fin);
-		}
-
-		memcpy(byOutPut, md, SHA_DIGEST_LENGTH);
-		dwOutPutLen = SHA_DIGEST_LENGTH;
-
-		return TRUE;
-	}
-	catch(...)
-	{
-		if (fin)
-		{
-			fclose(fin);
-		}
-		return FALSE;
-	}
-}
 /************************************************************************
 * 函数介绍：从数据库获取当前机器的DeviceID
 * 输入参数：
@@ -918,6 +865,42 @@ BOOL CPOSClientApp::GetDeviceID()
 		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED,ch,strlen(ch),ip,128);
 		LOG4CPLUS_INFO(log_pos,_T("IP Address:")<<ip);
 		m_strIP.Format(_T("%s"),ip);
+#if defined(WEB_VERSION)
+		HardwareInfo hard;
+		m_strDiskId=hard.GetHDSerial();
+		strSQL.Format(_T("SELECT * FROM user_workstations WHERE opos_device_name=\'%s\'"),m_strDiskId);
+		rs.Open( CRecordset::forwardOnly,strSQL);
+		if (rs.GetRecordCount()==0)
+		{//找不到，跳转到添加页面
+			CAddPosDlg dlg;
+			if(dlg.DoModal()==IDCANCEL)
+			{
+				if(dlg.m_nResult==1||dlg.m_nResult==2)
+				{
+					POSMessageBox(IDS_REGMAX);
+				}
+				return FALSE;
+			}
+			else
+			{//重新下载数据
+				splash.SetProgress( 70, IDS_CHECKREG);
+				if(CLoginDlg::DoDownload(NULL)==0)
+				{//下载成功,重新查询
+					rs.Close();
+					strSQL.Format(_T("SELECT * FROM user_workstations WHERE opos_device_name=\'%s\'"),m_strDiskId);
+					rs.Open( CRecordset::forwardOnly,strSQL);
+					if (rs.GetRecordCount()==0)
+						return FALSE;
+				}
+				else
+				{//下载失败
+					return FALSE;
+				}
+			}
+			//rs.Close();
+		}
+#else
+
 		strSQL.Format(_T("SELECT * FROM user_workstations WHERE ip_address=\'%s\' OR pos_name=\'%s\';"),ip,m_strHostName);
 		rs.Open( CRecordset::forwardOnly,strSQL);
 		if (rs.GetRecordCount()==0)
@@ -943,6 +926,7 @@ BOOL CPOSClientApp::GetDeviceID()
 			}
 			
 		}
+#endif
 		CDBVariant variant;
 		rs.GetFieldValue(_T("workstations_id"),variant);
 		m_nDeviceId=variant.m_iVal;
@@ -1624,26 +1608,15 @@ void CPOSClientApp::OpenDrawer()
 		LOG4CPLUS_ERROR(log_pos,"OpenDrawer Failed!");
 	}
 }
-BOOL CPOSClientApp::CheckUsbKey()
+BOOL CPOSClientApp::CheckInit()
 {
-// 	RY_HANDLE  handle = 0;     //设备的句柄
-// 	DWORD retcode;             //错误码
-// 	int   count = 0;           //查找到的加密锁个数
-// 	char  vendorID[10]="90BCDAC6";  //指定开发商ID
-// 	retcode = RY3_Find(vendorID, &count);   //查找指定开发商ID的加密锁
-// 	if ( retcode != RY3_SUCCESS)
-// 	{
-// 		return FALSE;
-// 	}
-// 	count = 1;
-// 	retcode = RY3_Open(&handle, count);  //打开第一把锁
-// 	if ( retcode != RY3_SUCCESS)
-// 		return FALSE;
-// 	//
-// 	//可在此加入对加密锁的操作
-// 	//
-// 	RY3_Close(handle, TRUE);  //关闭加密锁，并清除安全状态
-// 	m_bUSB=TRUE;
+	if(m_editMode==0)
+	{
+		CString count=GetFiledValue(_T("SELECT order_head_id FROM history_order_head LIMIT 1"));
+		if(_wtol(count)==0)
+		{//需要初始化下载数据
+		}
+	}
 	return TRUE;
 }
 /************************************************************************

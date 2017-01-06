@@ -80,7 +80,8 @@ BOOL ChangePswDlg::OnInitDialog()
 	m_btCancel.SetImage(_T("Picture\\bt_cancel.png"));
 	m_softButton.SetImage(_T("Picture\\softboard.png"));
 	m_btCancel.SetTextColor(DEFALUT_TXT_COLOR);
-	m_btOK.SetTextColor(DEFALUT_TXT_COLOR);	if (!theLang.m_bDefaultLang)
+	m_btOK.SetTextColor(DEFALUT_TXT_COLOR);	
+	if (!theLang.m_bDefaultLang)
 	{
 		SetFont(&theLang.m_dialogFont);
 		CWnd* pCtrl=GetDlgItem(IDOK);

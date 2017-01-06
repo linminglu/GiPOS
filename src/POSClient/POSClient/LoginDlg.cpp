@@ -18,8 +18,6 @@
 #include <openssl/aes.h>
 // CLoginDlg 对话框
 
-CString m_strCloudURL=_T("www.gicater.me");
-
 IMPLEMENT_DYNAMIC(CLoginDlg, CPosPage)
 
 CLoginDlg::CLoginDlg(CWnd* pParent /*=NULL*/)
@@ -387,7 +385,7 @@ BOOL CLoginDlg::OnInitDialog()
 //	if(theApp.m_bUSB)
 //		SetTimer(1001,3600000,NULL);//每隔1小时签到，检查软件注册
 	if(theApp.IS_SERVER&&m_pSyncBtn&&theApp.m_editMode==1)
-		SetTimer(1002,1000,NULL);
+		SetTimer(1002,5000,NULL);
 	CTime time=CTime::GetCurrentTime();
 	CString strTime=time.Format(_T("%Y-%m-%d %H:%M"));
 	m_timeCtrl.SetWindowText(strTime);
@@ -688,18 +686,13 @@ void CLoginDlg::OnBnClickedLanguage()
 UINT DownloadThread(LPVOID pParam)
 {
 	CLoginDlg *pDlg = (CLoginDlg*)pParam;
-	pDlg->DoDownload();
-	return 0;
-}
-UINT ChangeToCloudThread(LPVOID pParam)
-{
-	CLoginDlg *pDlg = (CLoginDlg*)pParam;
-	pDlg->ChangeEditMode(1);
+	pDlg->DoDownload(pDlg->mProgDlg);
 	return 0;
 }
 
-int CLoginDlg::DoDownload()
+int CLoginDlg::DoDownload(ProgressDlg* progress)
 {
+	int nCode=-1;
 	try{
 		CDatabase db;
 		db.OpenEx(_T("DSN=agile_pos"));
@@ -739,7 +732,7 @@ int CLoginDlg::DoDownload()
 		session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 10);
 		session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
 		session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
-		CHttpConnection* pConnection = session.GetHttpConnection(m_strCloudURL,(INTERNET_PORT)80);
+		CHttpConnection* pConnection = session.GetHttpConnection(theApp.m_strCloudURL,(INTERNET_PORT)80);
 		CString szHeaders   = L"Content-Type: application/x-www-form-urlencoded;";
 		std::string str;
 		root.ToString(str);
@@ -764,12 +757,13 @@ int CLoginDlg::DoDownload()
 		pFile->QueryInfoStatusCode(dwStatus);
 		if(dwStatus != HTTP_STATUS_OK)
 		{
-			LOG4CPLUS_ERROR(log_pos,"Connect "<<(LPCTSTR)m_strCloudURL<<":"<<" status code="<<dwStatus);
+			LOG4CPLUS_ERROR(log_pos,"Connect "<<(LPCTSTR)theApp.m_strCloudURL<<":"<<" status code="<<dwStatus);
 			session.Close();
 			pFile->Close();
 			delete pFile;
-			mProgDlg->Stop();
-			return 0;
+			if(progress)
+				progress->Stop();
+			return -1;
 		}
 		CString strHeader;
 		pFile->QueryInfo(HTTP_QUERY_CONTENT_TYPE,strHeader);
@@ -787,6 +781,7 @@ int CLoginDlg::DoDownload()
 			root.Parse((LPCTSTR)jStr,JSON_FLAG_LOOSE);
 			CString msg=root[_T("description")].asCString();
 			POSMessageBox(msg);
+			//TODO 根据返回值判断是否成功
 		}
 		else
 		{
@@ -797,8 +792,9 @@ int CLoginDlg::DoDownload()
 				session.Close();
 				pFile->Close();
 				delete pFile;
-				mProgDlg->Stop();
-				return 0;
+				if(progress)
+					progress->Stop();
+				return -2;
 			}
 			char buffer[2049]={0};
 			int nReadCount = 0;
@@ -832,116 +828,18 @@ int CLoginDlg::DoDownload()
 			}
 			zip.Close();
 			POSMessageBox(IDS_SYNCOK);
+			nCode=0;
 		}
 		pFile->Close();
-		db.Close();
-		mProgDlg->Stop();
-		
-	}catch(...)
-	{}
-	mProgDlg->Stop();
-	return 0;
-}
-
-
-void CLoginDlg::ChangeEditMode(int mode)
-{
-	CString strSQL;
-	CString strVal;
-	try{
-	CRecordset rs(&theDB);
-	if(mode==1)
-	{//上传数据
-		strSQL=_T("SELECT cr_last_time,tender_media+major_group+family_group+rvc_center+periods+menu_item+employee+`tables`+res_info AS col FROM webreport_setting");
-		rs.Open(CRecordset::forwardOnly,strSQL);
-		CString last_time;
-		rs.GetFieldValue((short)0,last_time);
-		rs.GetFieldValue((short)1,strVal);
-		rs.Close();
-		if(strVal!=_T("0"))
-		{
-			KillProcessByName(_T("WebReport.exe"));
-			ShellExecute(NULL, NULL, _T("WebReport.exe"), NULL, NULL,SW_NORMAL);
-			//检测是否上传成功
-			BOOL bSuccess=FALSE;
-			strSQL=_T("SELECT cr_last_time FROM webreport_setting");
-			for(int i=0;i<10;i++)
-			{
-				Sleep(2000);
-				rs.Open(CRecordset::forwardOnly,strSQL);
-				rs.GetFieldValue((short)0,strVal);
-				rs.Close();
-				if(last_time.Compare(strVal)!=0)
-				{
-					bSuccess=TRUE;
-					mProgDlg->Step(1,_T("Switching ..."));
-					break;
-				}
-			}
-			if(bSuccess==FALSE)
-			{
-				mProgDlg->Step(1,_T("Upload timeout..."));
-			}
-			Sleep(15000);
-		}
-	}
-	JSONVALUE root;
-	root[_T("guid")]=theApp.m_strResId;
-	if(mode==0)
-		root[_T("set_mode")]=_T("local");
-	else
-		root[_T("set_mode")]=_T("web");
-	strSQL=_T("SELECT major_version FROM www_version");
-	rs.Open(CRecordset::forwardOnly,strSQL);
-	if (!rs.IsEOF())
-	{
-		rs.GetFieldValue((short)0,strVal);
-	}
-	rs.Close();
-	root[_T("major_version")]=_wtoi(strVal);
-	if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("简体中文"))
-		root[_T("lang")]=_T("zh-CN");
-	else if(theLang.m_strLang==_T("繁體中文"))
-		root[_T("lang")]=_T("zh-TW");
-	else
-		root[_T("lang")]=_T("en");
-	JSONVALUE response;
-	if(HttpPost(m_strCloudURL,80,_T("/client_switch/"),root,response))
-	{
-		mProgDlg->Stop();
-		int result=response[_T("result")].asInt();
-		if(result==0||result==2)
-		{
-			strSQL.Format(_T("UPDATE webreport_setting SET edit_mode=1"));
-			theDB.ExecuteSQL(strSQL);
-			POSMessageBox(IDS_SWITCHOK);
-			CString strCurrentUrl;
-			strCurrentUrl.Format(_T("http://%s/center/center_register/?guid=%s"),m_strCloudURL,theApp.m_strResId);
-			ShellExecute(GetSafeHwnd(), _T("OPEN"), strCurrentUrl, NULL, NULL,SW_NORMAL);
-		}
-		else
-		{
-			
-			CString str,str2;
-			theLang.LoadString(str2,IDS_SWITCHFAIL);
-			str2.Append(_T("\n[%s]"));
-			str.Format(str2,response[_T("error")].asCString());
-			POSMessageBox(str);
-		}
-	}
-	else
-	{
-		mProgDlg->Stop();
-		POSMessageBox(IDS_NETWARNING);
-	}
+		db.Close();	
 	}catch(...)
 	{
-
+		nCode=-3;
 	}
-	mProgDlg->Stop();
+	if(progress)
+		progress->Stop();
+	return nCode;
 }
-
-
 void CLoginDlg::OnBnClickedSync()
 {
 	if(!theApp.IS_SERVER)
@@ -988,7 +886,7 @@ int CLoginDlg::CheckForUpdate()
 	root[_T("db_version")] = strVer;
 	root[_T("guid")]=theApp.m_strResId;
 	JSONVALUE versions;
-	strSQL.Format(_T("SELECT * FROM www_version"));
+	strSQL.Format(_T("SELECT major_version FROM www_version"));
 	rs.Open(CRecordset::forwardOnly,strSQL);
 	if(!rs.IsEOF())
 	{
@@ -1003,68 +901,24 @@ int CLoginDlg::CheckForUpdate()
 		}
 	}
 	root["versions"] = versions;
-	CString strURL,strValue;
-	CInternetSession session;
-	session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 10);
-	session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
-	session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
-	CHttpConnection* pConnection = session.GetHttpConnection(m_strCloudURL,(INTERNET_PORT)80);
-	CString szHeaders   = L"Content-Type: application/x-www-form-urlencoded;";
-	std::string str;
-	root.ToString(str);
-	int wcsLen0 =str.length();
-	// aes encrypt
-	AES_KEY aes_enc_ctx;
-	unsigned char ivec[AES_BLOCK_SIZE]={'0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'};
-	int len = 0;
-	if ((wcsLen0 + 1) % AES_BLOCK_SIZE == 0) {
-		len = wcsLen0 + 1;
-	} else {
-		len = ((wcsLen0 + 1) / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
-	}
-	unsigned char *encrypt_text=(unsigned char *) new char[len];
-	AES_set_encrypt_key(theApp.enctrypkey, 128, &aes_enc_ctx);
-	AES_cbc_encrypt((const unsigned char *)str.c_str(), encrypt_text, len, &aes_enc_ctx, ivec, AES_ENCRYPT); 
-	strURL.Format(_T("/client_download/?checkupdate=1"));
-	CHttpFile* pFile = pConnection->OpenRequest(CHttpConnection::HTTP_VERB_POST,strURL);
-	pFile->SendRequest(szHeaders,szHeaders.GetLength(),(LPVOID)encrypt_text,len);
-	delete encrypt_text;
-	DWORD dwStatus;
-	pFile->QueryInfoStatusCode(dwStatus);
-	if(dwStatus != HTTP_STATUS_OK)
+
+	JSONVALUE response;
+	BOOL bRet=HttpPost(theApp.m_strCloudURL,80,_T("/client_download/?checkupdate=1"),root,response);
+	if(bRet)
 	{
-		LOG4CPLUS_ERROR(log_pos,"Connect "<<(LPCTSTR)m_strCloudURL<<":"<<" status code="<<dwStatus);
-		session.Close();
-		pFile->Close();
-		delete pFile;
-		mProgDlg->Stop();
-		return 2000;
-	}
-	CString strHeader;
-	pFile->QueryInfo(HTTP_QUERY_CONTENT_TYPE,strHeader);
-	if(strHeader.CompareNoCase(_T("application/json"))==0)
-	{
-		char buf[1024]={0};
-		pFile->ReadString((LPTSTR)buf,sizeof(buf)-1);
-		wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, buf, strlen(buf), NULL, 0);
-		TCHAR* sz1 = new TCHAR[wcsLen0 + 1];
-		::MultiByteToWideChar(CP_UTF8, NULL, buf, -1, sz1, wcsLen0);
-		sz1[wcsLen0] = '\0';
-		CString jStr;
-		JSONVALUE::Unescape(sz1,jStr);
-		delete sz1;
-		root.Parse((LPCTSTR)jStr,JSON_FLAG_LOOSE);
-		int status = root[_T("has_update")].asInt();
+		int status = response[_T("has_update")].asInt();
 		if (status > 0)
 		{//有更新
 			m_pSyncBtn->SetIcon(IDI_ICON_NEW,CRoundButton2::RIGHTUP);
 			return -1;
 		}
-		int wait=root[_T("wait_minutes")].asInt();
+		int wait=response[_T("wait_minutes")].asInt();
 		if(wait<1)
 			wait=10;
 		return wait*60;
 	}
+	else
+		return 600;
 }
 void CLoginDlg::OnTimer(UINT_PTR nIDEvent)
 {

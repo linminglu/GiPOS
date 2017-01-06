@@ -873,6 +873,22 @@ BEGIN
     CONTROL         "启用副屏",IDC_CHECK3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,65,62,10
 END
 
+IDD_ADDPOS DIALOGEX 0, 0, 133, 82
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOPMOST
+CAPTION "添加收银电脑"
+FONT 14, "微软雅黑", 400, 0, 0x86
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,13,60,41,19
+    PUSHBUTTON      "取消",IDCANCEL,79,60,41,19
+    CTEXT           "手机号",IDC_STATIC1,0,8,60,8
+    CTEXT           "密码",IDC_STATIC2,0,24,60,8
+    CTEXT           "收银电脑名",IDC_STATIC3,0,43,60,8
+    EDITTEXT        IDC_EDIT3,59,40,72,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT2,59,22,72,12,ES_PASSWORD | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT1,59,4,72,12,ES_AUTOHSCROLL | ES_NUMBER
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1270,6 +1286,12 @@ BEGIN
         RIGHTMARGIN, 184
         TOPMARGIN, 1
         BOTTOMMARGIN, 109
+    END
+
+    IDD_ADDPOS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 132
+        BOTTOMMARGIN, 81
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1741,6 +1763,8 @@ BEGIN
     IDS_NOTALLOWTBL         "不能操作其他用户开的桌"
     IDS_PRINT_SERIAL        "打印流水"
     IDS_SKIP                "跳过"
+    IDS_NEED_ACTIVE         "您的系统需要激活，请连接网络并重启云服务"
+    IDS_REGMAX              "软件未注册或已达到最大注册数!"
 END
 
 #endif    // 中文(中华人民共和国) resources

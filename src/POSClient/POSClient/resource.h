@@ -454,11 +454,12 @@
 #define IDD_RESERVE                     449
 #define IDS_LEVEL                       450
 #define IDD_TIPSADD                     450
-#define IDI_ICON2                       450
 #define IDI_ICON_NEW                    450
 #define IDS_PASSWORD                    451
 #define IDD_DISPLAYSET                  451
 #define IDS_PRINTSERVERNOTRUN           452
+#define IDD_CHANGEPSW1                  452
+#define IDD_ADDPOS                      452
 #define IDS_PRINT_ERROR_OPENFAIL        453
 #define IDS_PRINT_ERROR_NETFAIL         454
 #define IDS_PRINT_ERROR_COVEOPEN        455
@@ -476,6 +477,8 @@
 #define IDS_NOTALLOWTBL                 467
 #define IDS_PRINT_SERIAL                468
 #define IDS_SKIP                        469
+#define IDS_NEED_ACTIVE                 470
+#define IDS_REGMAX                      471
 #define IDC_EDIT1                       1000
 #define IDC_LIST1                       1001
 #define IDC_EDIT8                       1001

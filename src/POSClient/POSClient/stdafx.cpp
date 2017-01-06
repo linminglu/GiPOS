@@ -15,6 +15,7 @@
 #pragma comment(lib,"ZipArchive.lib")
 #endif
 
+#pragma comment(lib,"libeay32.lib")
 #pragma comment(lib,"odbc32.lib")
 #pragma comment(lib,"version.lib")
 #pragma comment(lib,"Imm32.lib")

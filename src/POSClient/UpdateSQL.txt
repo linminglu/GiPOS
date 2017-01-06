@@ -3,8 +3,20 @@
 发布日期:	2017-1-10
 ************************************************************
 ALTER TABLE cashbox_in_out ADD COLUMN remark varchar(64); 
+CREATE TABLE `pos_keys` (
+  `id` int(11) NOT NULL DEFAULT '0',
+  `pos_type` int(11) DEFAULT NULL,
+  `stamp` varbinary(512) DEFAULT NULL,
+  `pos` varbinary(512) DEFAULT NULL,
+  `pad` varbinary(512) DEFAULT NULL,
+  `pda` varbinary(512) DEFAULT NULL,
+  `smenu` varbinary(512) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+UPDATE total_statistics SET db_version='20170201';
 ************************************************************
-版本：		V16.12.10.20
+版本：		V17.1.1.20
 发布日期:	2016-12-10
 ************************************************************
 ALTER TABLE webreport_setting ADD COLUMN edit_mode INT DEFAULT 0;

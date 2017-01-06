@@ -174,7 +174,8 @@ public:
 	CString m_strHostName;//当前电脑名
 	CString m_strIP;
 	CString m_strResId;//餐厅ID
-	CString m_strGicaterId;//聚客用户ID
+	CString m_strDiskId;//硬盘号
+	CString m_strCloudURL;//云服务器地址
 	CString m_strVersion;
 	CString m_wxSubMchid;//微信子商户号
 	string m_aliAuthToken;//支付宝token
@@ -183,7 +184,6 @@ public:
 	CString m_strQfServerURL;
 	CMap<CString, LPCTSTR, int, int> m_privilegeMap;//用户权限表
 	BOOL m_bRefund;//退款状态
-	BOOL m_bUSB;
 	BOOL m_bUseIE;
 	CString m_strRefundReason;//退款的原因
 	int m_nRVC;//RVC id,当前桌的区域
@@ -241,9 +241,7 @@ private:
 // 重写
 	public:
 	virtual BOOL InitInstance();
-	BOOL Checkin();
-	BOOL AppLibCrypt_HASH_SHA1_FILE(CString strFilePath, BYTE* byOutPut, DWORD &dwOutPutLen);
-	BOOL CheckSignature(CString filePath,CString sigPath);
+	BOOL CheckInit();
 	BOOL GetDeviceID();
 	BOOL InitPrinter();
 	void ResetAutoIncrement();
@@ -254,7 +252,6 @@ private:
 	static void CriticalLogs(OPR_TYPES,CString detail);
 	static void FormatPrintDevice(JSONVALUE& root,PrintDeviceInfo& printer);
 	static BOOL PrintJson(JSONVALUE& root);
-	BOOL CheckUsbKey();
 // 实现
 
 	DECLARE_MESSAGE_MAP()
@@ -271,6 +268,7 @@ extern DWORD DEFALUT_BACKGROUND_COLOR;
 extern std::map<CString,int> macrosInt;
 extern SecondScreenDlg* m_pSecond;
 BOOL OpenDatabase(BOOL bRecounect=FALSE);
+CString GetFiledValue(LPCTSTR strSQL);
 BOOL HttpPost(LPCTSTR server,int port,LPCTSTR url,JSONVALUE& request,JSONVALUE& response);
 void KillProcessByName(LPCTSTR lpProcessName);
 INT_PTR POSMessageBox(LPCTSTR lpszText, UINT nType = MB_OK);

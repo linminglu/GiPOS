@@ -860,7 +860,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 						item->total_price=-discount;
 						item->item_id=ITEM_ID_DISCOUNT;
 						item->n_checkID=active+1;
-						str2.LoadString(IDS_DISCOUNT);
+						theLang.LoadString(str2,IDS_DISCOUNT);
 						if(customDlg.m_dDiscName>0.001)
 							str2.AppendFormat(_T(" %g"),customDlg.m_dDiscName);
 						if(macrosInt[_T("PRINT_WEBVIPID")]!=0)
