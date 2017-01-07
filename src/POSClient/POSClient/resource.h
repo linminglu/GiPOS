@@ -461,6 +461,8 @@
 #define IDD_CHANGEPSW1                  452
 #define IDD_ADDPOS                      452
 #define IDS_PRINT_ERROR_OPENFAIL        453
+#define IDD_ADDPOS1                     453
+#define IDD_WEBLOGIN                    453
 #define IDS_PRINT_ERROR_NETFAIL         454
 #define IDS_PRINT_ERROR_COVEOPEN        455
 #define IDS_PRINT_ERROR_PAPEROUT        456
@@ -479,6 +481,7 @@
 #define IDS_SKIP                        469
 #define IDS_NEED_ACTIVE                 470
 #define IDS_REGMAX                      471
+#define IDS_DOWNLOAD                    472
 #define IDC_EDIT1                       1000
 #define IDC_LIST1                       1001
 #define IDC_EDIT8                       1001

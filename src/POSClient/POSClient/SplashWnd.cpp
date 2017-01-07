@@ -37,7 +37,7 @@ CSplashWnd::CSplashWnd( HWND hParent )
 CSplashWnd::~CSplashWnd()
 {
 	Hide();
-	if (m_pImage) delete m_pImage;
+//	if (m_pImage) delete m_pImage;
 }
 
 void CSplashWnd::SetImage( Gdiplus::Image* pImage )

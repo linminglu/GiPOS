@@ -780,8 +780,9 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 			delete sz1;
 			root.Parse((LPCTSTR)jStr,JSON_FLAG_LOOSE);
 			CString msg=root[_T("description")].asCString();
-			POSMessageBox(msg);
-			//TODO 根据返回值判断是否成功
+			nCode=root[_T("result")].asInt();
+			if(progress||nCode!=0)
+				POSMessageBox(msg);
 		}
 		else
 		{
@@ -827,7 +828,8 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				db.ExecuteSQL(strSQL);
 			}
 			zip.Close();
-			POSMessageBox(IDS_SYNCOK);
+			if(progress)
+				POSMessageBox(IDS_SYNCOK);
 			nCode=0;
 		}
 		pFile->Close();

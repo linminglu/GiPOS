@@ -543,14 +543,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ACEdit.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ACListWnd.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\AddPosDlg.cpp"
 				>
 			</File>
@@ -879,6 +871,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\WebLoginDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\WeixinPayDlg.cpp"
 				>
 			</File>
@@ -1201,6 +1197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\WebLoginDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\WeixinPayDlg.h"
 				>
 			</File>
@@ -1362,6 +1362,14 @@
 		<Filter
 			Name="вт╩Ф©ь╪Ч"
 			>
+			<File
+				RelativePath=".\ACEdit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ACListWnd.cpp"
+				>
+			</File>
 			<File
 				RelativePath=".\BtnST.cpp"
 				>

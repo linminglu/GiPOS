@@ -21,6 +21,7 @@
 #include "ViewCheckDlg.h"
 #include "WebDlg.h"
 #include "AddPosDlg.h"
+#include "WebLoginDlg.h"
 #include <GdiPlus.h>
 #include "SplashWnd.h"
 #include "HardwareInfo.h"
@@ -392,7 +393,7 @@ BOOL CPOSClientApp::InitInstance()
 	CreatButton::m_nFullHeight=::GetPrivateProfileInt(_T("POS"),_T("CYSCREEN"),768,_T(".\\config.ini"));
 	m_isCusFloor=::GetPrivateProfileInt(_T("POS"),_T("CUSTOMER_FLOOR"),0,_T(".\\config.ini"));
 	CMainSheet::m_iStaticsInfo=::GetPrivateProfileInt(_T("POS"),_T("STATIS_INFO"),1,_T(".\\config.ini"));
-	splash.SetProgress( 50, IDS_CONECTDB);
+	splash.SetProgress( 20, IDS_CONECTDB);
 	if(!OpenDatabase(TRUE))
 	{
 		LOG4CPLUS_INFO(log_pos,"OpenDatabase Failed");
@@ -401,23 +402,26 @@ BOOL CPOSClientApp::InitInstance()
 	}
 	CString strSQL;
 	CRecordset rs(&theDB);
-	strSQL.Format(_T("SELECT cr_res_id,cr_url,edit_mode FROM webreport_setting"));
+	strSQL.Format(_T("SELECT cr_url,cr_res_id,cr_res_pwd,edit_mode FROM webreport_setting"));
 	if(rs.Open(CRecordset::forwardOnly,strSQL))
 	{
 		if (!rs.IsEOF())
 		{
 			CString strVal;
-			rs.GetFieldValue(_T("cr_res_id"),strVal);
-			m_strResId.Format(_T("%s"),strVal);
 			rs.GetFieldValue(_T("cr_url"),strVal);
 			m_strCloudURL.Format(_T("%s"),strVal);
+			rs.GetFieldValue(_T("cr_res_id"),strVal);
+			m_strResId.Format(_T("%s"),strVal);
+			rs.GetFieldValue(_T("cr_res_pwd"),strVal);
+			m_strPhone.Format(_T("%s"),strVal);
 			rs.GetFieldValue(_T("edit_mode"),strVal);
 			m_editMode=_wtoi(strVal);
 		}
 		rs.Close();
 	}
 #if defined(WEB_VERSION)
-	CheckInit();
+	if(CheckInit()==FALSE)
+		return FALSE;
 #endif
 	ResetAutoIncrement();
 	//从macros表获取全局的设置
@@ -1610,11 +1614,18 @@ void CPOSClientApp::OpenDrawer()
 }
 BOOL CPOSClientApp::CheckInit()
 {
-	if(m_editMode==0)
-	{
-		CString count=GetFiledValue(_T("SELECT order_head_id FROM history_order_head LIMIT 1"));
-		if(_wtol(count)==0)
-		{//需要初始化下载数据
+	if(m_strPhone.IsEmpty())
+	{//需要初始化下载数据
+		CWebLoginDlg dlg;
+		if(dlg.DoModal()==IDCANCEL)
+			return FALSE;
+		else
+		{
+			splash.SetProgress( 30, IDS_DOWNLOAD);
+			if(CLoginDlg::DoDownload(NULL)==0)
+			{//下载成功
+				return TRUE;
+			}
 		}
 	}
 	return TRUE;

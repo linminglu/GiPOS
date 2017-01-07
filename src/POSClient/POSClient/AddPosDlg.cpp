@@ -65,10 +65,9 @@ BOOL CAddPosDlg::OnInitDialog()
 		m_nSys=64;
 	else
 		m_nSys=32;
-	CString phone=GetFiledValue(_T("SELECT cr_res_pwd FROM webreport_setting"));
-	if(phone!=_T("123456"))
+	if(theApp.m_strPhone!=_T("123456"))
 	{
-		GetDlgItem(IDC_EDIT1)->SetWindowText(phone);
+		GetDlgItem(IDC_EDIT1)->SetWindowText(theApp.m_strPhone);
 	}
 	return TRUE;
 }
@@ -89,18 +88,21 @@ void CAddPosDlg::OnBnClickedOk()
 	root[_T("arch")]=m_nSys;
 
 	JSONVALUE response;
-	HttpPost(theApp.m_strCloudURL,80,_T("/register/api/add_pos/"),root,response);
-	m_nResult=response[_T("result")].asInt();
-	if(m_nResult==0)
-		OnOK();
-	else if(m_nResult>3)
+	BOOL bOK=HttpPost(theApp.m_strCloudURL,80,_T("/register/api/add_pos/"),root,response);
+	if(bOK)
 	{
-		POSMessageBox(response[_T("message")].asCString());
-		return;
-	}
-	else
-	{
-		OnCancel();
+		m_nResult=response[_T("result")].asInt();
+		if(m_nResult==0)
+			OnOK();
+		else if(m_nResult>3)
+		{
+			POSMessageBox(response[_T("message")].asCString());
+			return;
+		}
+		else
+		{
+			OnCancel();
+		}
 	}
 }
 HBRUSH CAddPosDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)

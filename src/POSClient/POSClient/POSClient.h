@@ -176,6 +176,7 @@ public:
 	CString m_strResId;//餐厅ID
 	CString m_strDiskId;//硬盘号
 	CString m_strCloudURL;//云服务器地址
+	CString m_strPhone;//云服务绑定手机号
 	CString m_strVersion;
 	CString m_wxSubMchid;//微信子商户号
 	string m_aliAuthToken;//支付宝token
