@@ -482,6 +482,7 @@
 #define IDS_NEED_ACTIVE                 470
 #define IDS_REGMAX                      471
 #define IDS_DOWNLOAD                    472
+#define IDS_SYNCOK2                     473
 #define IDC_EDIT1                       1000
 #define IDC_LIST1                       1001
 #define IDC_EDIT8                       1001

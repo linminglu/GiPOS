@@ -804,6 +804,8 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				NetFile.Write(buffer,nReadCount);
 			}
 			NetFile.Close();
+			CString strRestart=_T("restaurant macros tax_primary user_workstations");
+			BOOL bNeedRestart=TRUE;
 			CZipArchive zip;
 			zip.Open(_T("_tmp_download"));
 			int zip_count=zip.GetNoEntries();
@@ -826,10 +828,21 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				db.ExecuteSQL(strSQL);
 				strSQL.Format(_T("LOAD DATA LOCAL INFILE '%s' REPLACE INTO TABLE %s FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\\n' IGNORE 1 LINES (%s)"),fullPath,fileName,line);
 				db.ExecuteSQL(strSQL);
+				if(!bNeedRestart&&progress)
+				{
+					int nPos=strRestart.Find(fileName);
+					if(nPos>=0)
+						bNeedRestart=TRUE;
+				}
 			}
 			zip.Close();
 			if(progress)
-				POSMessageBox(IDS_SYNCOK);
+			{
+				if(bNeedRestart)
+					POSMessageBox(IDS_SYNCOK2);
+				else
+					POSMessageBox(IDS_SYNCOK);
+			}
 			nCode=0;
 		}
 		pFile->Close();
@@ -847,6 +860,9 @@ void CLoginDlg::OnBnClickedSync()
 	if(!theApp.IS_SERVER)
 		return;
 	m_pSyncBtn->SetIcon((HICON)NULL,CRoundButton2::RIGHTUP);
+	KillTimer(1002);
+	SetTimer(1002,600*1000,NULL);//10分钟后再检查
+
 	OpenDatabase();
 	CString strSQL=_T("SELECT edit_mode FROM webreport_setting");
 	CRecordset rs(&theDB);
@@ -944,7 +960,6 @@ void CLoginDlg::OnTimer(UINT_PTR nIDEvent)
 			{
 				SetTimer(1002,wait*1000,NULL);
 			}
-			
 		}
 	}
 	CPosPage::OnTimer(nIDEvent);

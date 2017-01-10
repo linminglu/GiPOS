@@ -76,8 +76,9 @@ void CWebLoginDlg::OnBnClickedOk()
 			itemsArray.At(i,org);
 			theApp.m_strResId=org[_T("org__org_guid")].asCString();
 			//更新餐厅ID和手机
+			theApp.m_strPhone=phone;
 			CString strSQL;
-			strSQL.Format(_T("UPDATE webreport_setting SET cr_res_id=\"%s\",cr_res_pwd=\"%s\""),theApp.m_strResId,phone);
+			strSQL.Format(_T("UPDATE webreport_setting SET cr_res_id=\"%s\",cr_res_pwd=\"%s\",edit_mode=1"),theApp.m_strResId,phone);
 			theDB.ExecuteSQL(strSQL);
 			//重置版本号
 			strSQL.Format(_T("DELETE FROM www_version"));
