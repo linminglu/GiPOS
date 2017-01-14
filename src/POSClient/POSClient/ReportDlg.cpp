@@ -463,6 +463,7 @@ void CReportDlg::ShowReport1(BOOL bSms)
 		type=type/10;
 		if(remain>=1)
 		{//分段销量
+			try{
 			theLang.LoadString(str2,IDS_RPTPERIOD);
 			m_strResult.Append(str2);
 			strSQL.Format(_T("{CALL c_period_sales(\'%s\',\'%s\')}"),m_strStartDate,m_strEndDate);
@@ -481,6 +482,8 @@ void CReportDlg::ShowReport1(BOOL bSms)
 				rs.MoveNext();
 			}
 			rs.Close();
+			}catch(...)
+			{}
 		}
 		//分类销量
 		remain=type%10;

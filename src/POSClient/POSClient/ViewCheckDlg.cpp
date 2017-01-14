@@ -470,7 +470,7 @@ void ViewCheckDlg::OnLvnItemchangedList2(NMHDR *pNMHDR, LRESULT *pResult)
 			theLang.LoadString(str2,IDS_CHKNUM);
 			tmpMsg.Format(_T("%s%05d/%d"),str2,m_nCheckNum,m_nActive);
 			m_checkCtrl.SetWindowText(tmpMsg);
-			CRect rc=CRect(0,0,360*CreatButton::m_nFullWidth/1024,150);
+			CRect rc=CRect(0,0,360*CreatButton::m_nFullWidth/1024,150*CreatButton::m_nFullHeight/768);
 			InvalidateRect(rc); 
 		}catch(...)
 		{

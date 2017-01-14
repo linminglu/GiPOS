@@ -200,7 +200,7 @@ void ViewWebCheckDlg::OnLvnItemchangedList2(NMHDR *pNMHDR, LRESULT *pResult)
 			CString str2,tmpMsg;
 			tmpMsg=m_listCtrl.GetItemText(nRow,2);
 			m_tableCtrl.SetWindowText(tmpMsg);
-			CRect rc=CRect(0,0,360*CreatButton::m_nFullWidth/1024,150);
+			CRect rc=CRect(0,0,360*CreatButton::m_nFullWidth/1024,150*CreatButton::m_nFullHeight/768);
 			InvalidateRect(rc); 
 		}catch(...)
 		{

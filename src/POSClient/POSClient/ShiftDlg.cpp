@@ -391,7 +391,7 @@ void ShiftDlg::GetShiftInfoByPos()
 						server=ip_addr.Left(index);
 						port=_wtoi(ip_addr.Right(ip_addr.GetLength()-index-1));
 					}
-					ip_addr.Format(_T("/api/get_recharge/1/json/?source=agile&date_from=%s&date_to=%s&guid=%s&machine_id=%s&random=%d")
+					ip_addr.Format(_T("/api/get_dishes/1/json/?source=agile&date_from=%s&date_to=%s&guid=%s&machine_id=%s&random=%d")
 						,str_from,str_to,theApp.m_strResId,URLEncode(theApp.m_strHostName),rand()%32767);
 					if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("¼òÌåÖÐÎÄ"))
 						ip_addr.AppendFormat(_T("&lang=zh-CN"));

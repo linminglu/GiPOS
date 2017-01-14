@@ -816,6 +816,18 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				zip.GetFileInfo(fhInfo,i);
 				CString fileName=fhInfo.GetFileName();
 				CString fullPath=strDir+_T("/")+fileName;
+				if(fileName.Right(4)==_T(".jpg"))
+				{//打印模版图片
+					MoveFile(fullPath,fileName);
+					continue;
+				}
+				else if(fileName.Right(4)==_T(".db3"))
+				{//平板数据文件
+					CString newPath=_T("../pad_server/file")+fileName;
+					MoveFile(fullPath,newPath);
+					continue;
+				}
+				
 				CStdioFile file;
 				file.Open(fullPath,CFile::modeRead);
 				CString line;
@@ -833,6 +845,15 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 					int nPos=strRestart.Find(fileName);
 					if(nPos>=0)
 						bNeedRestart=TRUE;
+				}
+				if(fileName.Compare(_T("print_templates"))==0)
+				{
+					//通知打印服务重新加载
+					HWND hWnd=::FindWindow(_T("CPrintServerDlg"),_T("AgilePrintServer"));
+					if(hWnd)
+					{
+						::PostMessage(hWnd, WM_USER+100, 0,0);
+					}
 				}
 			}
 			zip.Close();

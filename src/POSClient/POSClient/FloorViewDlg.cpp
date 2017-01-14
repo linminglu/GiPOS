@@ -412,7 +412,7 @@ void FloorViewDlg::OnItemBnClicked(UINT uID)
 }
 void FloorViewDlg::UpdateCheck(BOOL bOpen)
 {
-	CRect rect(0,0,350*CreatButton::m_nFullWidth,200);
+	CRect rect(0,0,350*CreatButton::m_nFullWidth/1024,200*CreatButton::m_nFullHeight/768);
 	CString str2,tmpMsg;
 	while(!m_orderList.IsEmpty())
 	{

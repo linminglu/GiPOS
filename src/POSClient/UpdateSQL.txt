@@ -1,5 +1,5 @@
 ************************************************************
-版本：		V17.1.10.20
+版本：		V17.2.10.20
 发布日期:	2017-1-10
 ************************************************************
 ALTER TABLE cashbox_in_out ADD COLUMN remark varchar(64); 
@@ -12,6 +12,13 @@ CREATE TABLE `pos_keys` (
   `pda` varbinary(512) DEFAULT NULL,
   `smenu` varbinary(512) DEFAULT NULL,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `print_templates` (
+  `template_id` int(11) NOT NULL AUTO_INCREMENT,
+  `template_name` varchar(255) DEFAULT NULL,
+  `content` varchar(20480) DEFAULT NULL,
+  PRIMARY KEY (`template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 UPDATE total_statistics SET db_version='20170201';

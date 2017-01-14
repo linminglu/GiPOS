@@ -423,7 +423,7 @@ BOOL CPOSClientApp::InitInstance()
 	if(CheckInit()==FALSE)
 		return FALSE;
 #endif
-	ResetAutoIncrement();
+	//ResetAutoIncrement();//测试发现不需要
 	//从macros表获取全局的设置
 	strSQL.Format(_T("SELECT db_version FROM total_statistics"));
 	if(rs.Open(CRecordset::forwardOnly,strSQL))
@@ -1377,29 +1377,21 @@ void CPOSClientApp::ResetAutoIncrement()
 			strSql.Format(_T("alter table order_head auto_increment = %s"),id);
 			theDB.ExecuteSQL(strSql);
 		}
-	}
-	catch(CDBException* e)
-	{
-		LOG4CPLUS_ERROR(log_pos,(LPCTSTR)e->m_strError);
-		e->Delete();
-	}
-	catch(...)
-	{
-		LOG4CPLUS_ERROR(log_pos,"Catch Exception GetLastError="<<GetLastError());
-	}
-	try{
-		CRecordset rs(&theDB);
-		CString strSql=_T("SELECT MAX(order_detail_id)+1 FROM history_order_detail;");
+		rs.Close();
+
+		strSql=_T("SELECT MAX(order_detail_id)+1 FROM history_order_detail");
 		rs.Open( CRecordset::forwardOnly,strSql);
 		if(!rs.IsEOF())
 		{
 			CString id;
 			rs.GetFieldValue((short)0,id);
-			if (id.IsEmpty())
-				id=_T("1");
-			strSql.Format(_T("alter table order_detail auto_increment = %s"),id);
-			theDB.ExecuteSQL(strSql);
+			if (!id.IsEmpty())
+			{//初始化时由服务器确定最大值
+				strSql.Format(_T("alter table order_detail auto_increment = %s"),id);
+				theDB.ExecuteSQL(strSql);
+			}
 		}
+		rs.Close();
 	}
 	catch(CDBException* e)
 	{
