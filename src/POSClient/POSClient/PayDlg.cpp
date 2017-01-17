@@ -2393,7 +2393,7 @@ void PayDlg::OnBnClickedGuest()
 		}
 		else
 			return;
-		if (guest>macrosInt[_T("MAX_GUEST_NUM")])
+		if (guest>MAX_GUEST_NUM)
 		{
 			POSMessageBox(IDS_TOMANYG);
 			return;

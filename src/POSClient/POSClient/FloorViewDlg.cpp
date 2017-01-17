@@ -970,7 +970,7 @@ void FloorViewDlg::OnBnClickedEatIn()
 		if(dlg.DoModal()==IDOK)
 		{
 			table_id=_wtoi(dlg.m_strNum);
-			if (table_id<=0||table_id>macrosInt[_T("MAX_TABLE_NUM")])
+			if (table_id<=0||table_id>MAX_TABLE_NUM)
 			{
 				POSMessageBox(IDS_TBLNOERROR);
 				return;

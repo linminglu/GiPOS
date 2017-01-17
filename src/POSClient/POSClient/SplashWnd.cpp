@@ -43,7 +43,7 @@ CSplashWnd::~CSplashWnd()
 void CSplashWnd::SetImage( Gdiplus::Image* pImage )
 {
 	if (m_pImage == NULL && pImage != NULL)
-		m_pImage = pImage->Clone();
+		m_pImage = pImage;//->Clone();
 }
 
 // void CSplashWnd::SetImage(HMODULE hModule, UINT nResourceID/*, DWORD dwLangLCID*/ )

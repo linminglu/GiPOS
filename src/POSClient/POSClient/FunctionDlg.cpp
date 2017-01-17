@@ -177,11 +177,6 @@ BOOL FunctionDlg::TransTable()
 			POSMessageBox(IDS_WRONGTBL);
 			return FALSE;
 		}
-// 		if (tableId>macrosInt[_T("MAX_TABLE_NUM")])
-// 		{
-// 			POSMessageBox(IDS_TOOMUCH);
-// 			return FALSE;
-// 		}
 		OpenDatabase();
 		CRecordset rs( &theDB);
 		CString strSQL,strTbl,strMsg;

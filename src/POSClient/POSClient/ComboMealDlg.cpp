@@ -972,7 +972,7 @@ void ComboMealDlg::OnBnClickedQuantity()
 			if(dlg.DoModal()==IDOK)
 			{
 				int num=_wtoi(dlg.m_strNum);
-				if (num<=0||num>macrosInt[_T("MAX_ITEM_QUANTITY")])
+				if (num<=0||num>MAX_ITEM_QUANTITY)
 				{
 					POSMessageBox(IDS_NUMERROR);
 					return;
@@ -1011,7 +1011,7 @@ void ComboMealDlg::OnBnClickedQuantity()
 						if(dlg.DoModal()==IDCANCEL)
 							return;
 						num=_wtof(dlg.m_strNum);
-						if (num<=0||num>macrosInt[_T("MAX_ITEM_QUANTITY")])
+						if (num<=0||num>MAX_ITEM_QUANTITY)
 						{
 							POSMessageBox(IDS_NUMERROR);
 							return;

@@ -339,7 +339,7 @@ BOOL CPOSClientApp::InitInstance()
 	if (pImage)
 	{
 		splash.SetImage(pImage);
-		delete pImage; // you are free to delete now
+		//delete pImage; // you are free to delete now
 		splash.Show();
 		splash.SetProgress( 0, IDS_INICFG);
 		splash.SetAutoProgress(0, 30, 3);
