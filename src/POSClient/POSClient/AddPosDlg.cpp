@@ -94,15 +94,15 @@ void CAddPosDlg::OnBnClickedOk()
 		m_nResult=response[_T("result")].asInt();
 		if(m_nResult==0)
 			OnOK();
-		else if(m_nResult>3)
+		else //if(m_nResult>3)
 		{
 			POSMessageBox(response[_T("message")].asCString());
 			return;
 		}
-		else
-		{
-			OnCancel();
-		}
+// 		else
+// 		{
+// 			OnCancel();
+// 		}
 	}
 }
 HBRUSH CAddPosDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)

@@ -654,7 +654,7 @@ BOOL CPOSClientApp::InitInstance()
 	InitPrintService();
 	if (GetDeviceID()==FALSE)
 	{
-		AfxMessageBox(_T("Get device config fail!"),MB_SYSTEMMODAL);
+		AfxMessageBox(_T("Get POS Config Fail!"),MB_SYSTEMMODAL);
 		return FALSE;
 	}
 	//查找并启动打印进程
@@ -879,10 +879,10 @@ BOOL CPOSClientApp::GetDeviceID()
 			CAddPosDlg dlg;
 			if(dlg.DoModal()==IDCANCEL)
 			{
-				if(dlg.m_nResult==1||dlg.m_nResult==2)
-				{
-					POSMessageBox(IDS_REGMAX);
-				}
+// 				if(dlg.m_nResult==1||dlg.m_nResult==2)
+// 				{
+// 					POSMessageBox(IDS_REGMAX);
+// 				}
 				return FALSE;
 			}
 			else

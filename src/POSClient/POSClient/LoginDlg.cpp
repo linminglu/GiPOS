@@ -700,16 +700,16 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 		CreateDirectory(strDir,NULL);
 		CRecordset rs(&db);
 		CString strSQL;
-		CString strVer;
+		CString strDbVer;
 		strSQL.Format(_T("SELECT db_version FROM total_statistics"));
 		rs.Open(CRecordset::forwardOnly,strSQL);
 		if (!rs.IsEOF())
 		{
-			rs.GetFieldValue((short)0,strVer);
+			rs.GetFieldValue((short)0,strDbVer);
 		}
 		rs.Close();
 		JSONVALUE root;
-		root[_T("db_version")] = strVer;
+		root[_T("db_version")] = strDbVer;
 		root[_T("guid")]=theApp.m_strResId;
 		JSONVALUE versions;
 		strSQL.Format(_T("SELECT * FROM www_version"));
@@ -857,6 +857,11 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				}
 			}
 			zip.Close();
+			JSONVALUE notify;
+			notify["db_version"] =strDbVer;
+			notify[_T("guid")]=theApp.m_strResId;
+			JSONVALUE response;
+			HttpPost(theApp.m_strCloudURL,80,_T("/client_download/?doupdate=1"),notify,response);
 			if(progress)
 			{
 				if(bNeedRestart)
