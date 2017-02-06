@@ -3124,6 +3124,7 @@ BOOL PayDlg::PreTranslateMessage(MSG* pMsg)
 			OnBnClickedPrePrint();
 			return TRUE;
 		case VK_DECIMAL:
+		case VK_OEM_PERIOD:
 			OnBnClickedButtonDot();
 			return TRUE;
 		case VK_UP:

@@ -860,6 +860,7 @@ void COrderPage::CopyPrintItem(PrintItem& pItem,OrderDetail* from)
 	pItem.total_price=from->total_price;
 	pItem.quantity=from->quantity;
 	pItem.n_class=from->family_group;
+	pItem.n_check=from->n_checkID;
 }
 
 // CString FormatString(LPCTSTR str)
