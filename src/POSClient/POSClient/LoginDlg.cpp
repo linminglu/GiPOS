@@ -726,6 +726,7 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				versions[fieldinfo.m_strName]=variant.m_lVal;
 			}
 		}
+		rs.Close();
 		root["versions"] = versions;
 		CString strURL,strValue;
 		CInternetSession session;
@@ -811,6 +812,7 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 			int zip_count=zip.GetNoEntries();
 			for(int i=0;i<zip_count;i++)
 			{
+				try{
 				zip.ExtractFile(i,strDir);
 				CZipFileHeader fhInfo;
 				zip.GetFileInfo(fhInfo,i);
@@ -830,15 +832,37 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				
 				CStdioFile file;
 				file.Open(fullPath,CFile::modeRead);
-				CString line;
+				CString line,columns,db_col;
 				file.ReadString(line);
 				file.Close();
-				line.Replace(_T(","),_T("`,`"));
-				line.Insert(0,'`');
-				line.AppendChar('`');
+				strSQL.Format(_T("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='%s' AND TABLE_SCHEMA='coolroid'"),fileName);
+				rs.Open(CRecordset::forwardOnly,strSQL);
+				while (!rs.IsEOF())
+				{
+					rs.GetFieldValue((short)0,strDbVer);
+					db_col.AppendFormat(_T("%s "),strDbVer);
+					rs.MoveNext();
+				}
+				rs.Close();
+				int nTokenPos = 0;
+				CString strToken = line.Tokenize(_T(","), nTokenPos);
+				while (!strToken.IsEmpty())
+				{
+					if(db_col.Find(strToken)>=0)
+					{
+						columns.AppendFormat(_T("`%s`,"),strToken);
+					}
+					else
+					{
+						columns.AppendFormat(_T("@%s,"),strToken);
+					}
+					strToken = line.Tokenize(_T(","), nTokenPos);
+				}
+				columns.Delete(columns.GetLength()-1);
+
 				strSQL.Format(_T("TRUNCATE TABLE %s"),fileName);
 				db.ExecuteSQL(strSQL);
-				strSQL.Format(_T("LOAD DATA LOCAL INFILE '%s' REPLACE INTO TABLE %s FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\\n' IGNORE 1 LINES (%s)"),fullPath,fileName,line);
+				strSQL.Format(_T("LOAD DATA LOCAL INFILE '%s' REPLACE INTO TABLE %s FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\\n' IGNORE 1 LINES (%s)"),fullPath,fileName,columns);
 				db.ExecuteSQL(strSQL);
 				if(!bNeedRestart&&progress)
 				{
@@ -854,6 +878,10 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 					{
 						::PostMessage(hWnd, WM_USER+100, 0,0);
 					}
+				}
+				}catch(...)
+				{
+
 				}
 			}
 			zip.Close();

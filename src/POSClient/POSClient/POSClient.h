@@ -244,7 +244,7 @@ private:
 	public:
 	virtual BOOL InitInstance();
 	BOOL CheckInit();
-	BOOL GetDeviceID();
+	int GetDeviceID();
 	BOOL InitPrinter();
 	void ResetAutoIncrement();
 	void OpenDrawer();

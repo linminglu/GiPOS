@@ -652,11 +652,14 @@ BOOL CPOSClientApp::InitInstance()
 	splash.SetProgress( 80, IDS_INITPRINT);
 	//初始化打印目录
 	InitPrintService();
-	if (GetDeviceID()==FALSE)
+	int ret=GetDeviceID();
+	if (ret<0)
 	{
 		AfxMessageBox(_T("Get POS Config Fail!"),MB_SYSTEMMODAL);
 		return FALSE;
 	}
+	else if(ret>0)
+		return FALSE;
 	//查找并启动打印进程
 	if(::FindWindow(_T("CPrintServerDlg"),_T("AgilePrintServer"))==NULL)
 	{
@@ -844,9 +847,9 @@ static RSA* OpenPubKey(const char* fileName)
 * 函数介绍：从数据库获取当前机器的DeviceID
 * 输入参数：
 * 输出参数：
-* 返回值  ：
+* 返回值  ：0 成功 -1 异常 1-用户取消
 ************************************************************************/
-BOOL CPOSClientApp::GetDeviceID()
+int CPOSClientApp::GetDeviceID()
 {
 	USES_CONVERSION;
 	try{
@@ -883,7 +886,7 @@ BOOL CPOSClientApp::GetDeviceID()
 // 				{
 // 					POSMessageBox(IDS_REGMAX);
 // 				}
-				return FALSE;
+				return 1;
 			}
 			else
 			{//重新下载数据
@@ -894,11 +897,11 @@ BOOL CPOSClientApp::GetDeviceID()
 					strSQL.Format(_T("SELECT * FROM user_workstations WHERE opos_device_name=\'%s\'"),m_strDiskId);
 					rs.Open( CRecordset::forwardOnly,strSQL);
 					if (rs.GetRecordCount()==0)
-						return FALSE;
+						return -1;
 				}
 				else
 				{//下载失败
-					return FALSE;
+					return -1;
 				}
 			}
 			//rs.Close();
@@ -915,7 +918,7 @@ BOOL CPOSClientApp::GetDeviceID()
 			if (rs.GetRecordCount()==0)
 			{
 				POSMessageBox(IDS_DATABASENOIP);
-				return FALSE;
+				return 1;
 			}
 			int count=0;
 			while(!rs.IsEOF())
@@ -1025,18 +1028,18 @@ BOOL CPOSClientApp::GetDeviceID()
 // 				}
 // 			}
 // 		}
-		return TRUE;
+		return 0;
 	}
 	catch(CDBException* e)
 	{
 		LOG4CPLUS_ERROR(log_pos,(LPCTSTR)e->m_strError);
 		e->Delete();
-		return FALSE;
+		return -1;
 	}
 	catch(...)
 	{
 		LOG4CPLUS_ERROR(log_pos,"Catch Exception GetLastError="<<GetLastError());
-		return FALSE;
+		return -1;
 	}
 }
 /************************************************************************
