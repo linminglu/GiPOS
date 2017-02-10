@@ -447,7 +447,7 @@ void ViewCheckDlg::OnLvnItemchangedList2(NMHDR *pNMHDR, LRESULT *pResult)
 			m_strUser=m_listCtrl.GetItemText(nRow,6);
 			m_logCtrl.SetWindowText(m_strUser);
 			tmpMsg=m_listCtrl.GetItemText(nRow,5);
-			m_strInvoice=m_listCtrl.GetItemText(nRow,7);
+			m_strInvoice=m_listCtrl.GetItemText(nRow,8);
 			tmpMsg=tmpMsg.Right(8);
 			//theApp.m_strBeginDate=tmpMsg.Left(tmpMsg.GetLength()-9);
 			m_timeCtrl.SetWindowText(tmpMsg);
@@ -722,7 +722,7 @@ void ViewCheckDlg::OnBnClickedButtonInvoice()
 	try{
 		if (m_nActive<0)
 			return;
-		LOG4CPLUS_INFO(log_pos,"PayDlg::OnBnClickedButtonInvoice Begin");
+		LOG4CPLUS_INFO(log_pos,"ViewCheckDlg::OnBnClickedButtonInvoice Begin");
 		OpenDatabase();
 		CString strSQL;
 		NumberInputDlg dlg;
@@ -740,8 +740,16 @@ void ViewCheckDlg::OnBnClickedButtonInvoice()
 			return;
 		amount=_wtof(dlg.m_strNum);
 		//更新数据库
-		strSQL.Format(_T("REPLACE INTO invoices(order_head_id, check_id,amount,employee_id,edit_time,pos_device_id) ")
-			_T("VALUES(%d,%d,\'%g\',%s,now(),%d);"),m_nOrderHeadid,m_nActive,amount,theApp.m_strUserID,theApp.m_nDeviceId);
+		if(m_strInvoice.IsEmpty())
+		{
+			strSQL.Format(_T("INSERT INTO invoices(order_head_id, check_id,amount,employee_id,edit_time,pos_device_id)")
+				_T(" VALUES(%d,%d,\'%g\',%s,now(),%d)"),m_nOrderHeadid,m_nActive,amount,theApp.m_strUserID,theApp.m_nDeviceId);
+		}
+		else
+		{
+			strSQL.Format(_T("UPDATE invoices SET amount=\'%g\',employee_id=%s,edit_time=now(),pos_device_id=%d")
+				_T(" WHERE order_head_id=%d AND check_id=%d"),amount,theApp.m_strUserID,theApp.m_nDeviceId,m_nOrderHeadid,m_nActive);
+		}
 		theDB.ExecuteSQL(strSQL);
 		//刷新显示
 		OnBnClickedSearch();

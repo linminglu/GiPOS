@@ -21,6 +21,9 @@ CREATE TABLE `print_templates` (
   PRIMARY KEY (`template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+ALTER TABLE www_version ADD COLUMN pad_data int(11) DEFAULT NULL;
+ALTER TABLE www_version ADD COLUMN pad_picture int(11) DEFAULT NULL;
+
 UPDATE total_statistics SET db_version='20170201';
 ************************************************************
 版本：		V17.1.1.20

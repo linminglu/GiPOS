@@ -2939,7 +2939,9 @@ void PayDlg::OnBnClickedButtonInvoice()
 		theLang.LoadString(dlg.m_strHint,IDS_INVOCENUM);
 		if (!strValue.IsEmpty())
 		{
-			dlg.m_strHint.AppendFormat(IDS_ORIGNALINVOICE,strValue);
+			CString str2;
+			theLang.LoadString(str2,IDS_ORIGNALINVOICE);
+			dlg.m_strHint.AppendFormat(str2,strValue);
 		}
 		double amount;
 		if(dlg.DoModal()!=IDOK)
@@ -2948,8 +2950,16 @@ void PayDlg::OnBnClickedButtonInvoice()
 			return;
 		amount=_wtof(dlg.m_strNum);
 		//更新数据库
-		strSQL.Format(_T("REPLACE INTO invoices(order_head_id, check_id,amount,employee_id,edit_time,pos_device_id) ")
-			_T("VALUES(%d,%d,\'%g\',%s,now(),%d);"),theApp.m_nOrderHeadid,active+1,amount,theApp.m_strUserID,theApp.m_nDeviceId);
+		if(strValue.IsEmpty())
+		{
+			strSQL.Format(_T("INSERT INTO invoices(order_head_id, check_id,amount,employee_id,edit_time,pos_device_id)")
+				_T(" VALUES(%d,%d,\'%g\',%s,now(),%d)"),theApp.m_nOrderHeadid,active+1,amount,theApp.m_strUserID,theApp.m_nDeviceId);
+		}
+		else
+		{
+			strSQL.Format(_T("UPDATE invoices SET amount=\'%g\',employee_id=%s,edit_time=now(),pos_device_id=%d")
+				_T(" WHERE order_head_id=%d AND check_id=%d"),amount,theApp.m_strUserID,theApp.m_nDeviceId,theApp.m_nOrderHeadid,active+1);
+		}
 		theDB.ExecuteSQL(strSQL);
 	}
 	catch(CDBException* e)

@@ -1783,7 +1783,7 @@ BEGIN
     IDS_NOTALLOWTBL         "不能操作其他用户开的桌"
     IDS_PRINT_SERIAL        "打印流水"
     IDS_SKIP                "跳过"
-    IDS_NEED_ACTIVE         "您的系统需要激活，请连接网络并重启云服务"
+    IDS_NEED_ACTIVE         "您的系统需要联网更新数据，请连接网络并重启程序"
     IDS_REGMAX              "软件未注册或已达到最大注册数!"
     IDS_DOWNLOAD            "正在下载更新..."
     IDS_SYNCOK2             "同步成功,请重启程序生效!"

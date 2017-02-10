@@ -73,6 +73,12 @@ BOOL CAddPosDlg::OnInitDialog()
 }
 void CAddPosDlg::OnBnClickedOk()
 {
+	CString pos_name;
+	GetDlgItemText(IDC_EDIT3,pos_name);
+	if(pos_name.IsEmpty())
+	{
+		return;
+	}
 	JSONVALUE root;
 	CString str;
 	root[_T("guid")]=theApp.m_strResId;
@@ -81,8 +87,7 @@ void CAddPosDlg::OnBnClickedOk()
 	GetDlgItemText(IDC_EDIT2,str);
 	root[_T("password")]=str;
 	root[_T("machine")]=theApp.m_strDiskId;
-	GetDlgItemText(IDC_EDIT3,str);
-	root[_T("pos_name")]=str;
+	root[_T("pos_name")]=pos_name;
 	root[_T("pos_type")]=0;
 	root[_T("os")]=m_nOS;
 	root[_T("arch")]=m_nSys;
