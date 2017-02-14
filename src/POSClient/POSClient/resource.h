@@ -76,6 +76,7 @@
 #define IDD_DIALOG2                     150
 #define IDD_INFOMATION                  150
 #define IDS_INSUFFICENT                 150
+#define IDS_DEMOBTN                     150
 #define IDD_DIALOG3                     151
 #define IDD_STRINGINPUT                 151
 #define IDS_NOCARD                      151

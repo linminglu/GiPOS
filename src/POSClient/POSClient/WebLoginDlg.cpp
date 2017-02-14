@@ -13,7 +13,7 @@ IMPLEMENT_DYNAMIC(CWebLoginDlg, CDialog)
 CWebLoginDlg::CWebLoginDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CWebLoginDlg::IDD, pParent)
 {
-
+	m_bDemo=FALSE;
 }
 
 CWebLoginDlg::~CWebLoginDlg()
@@ -25,6 +25,7 @@ void CWebLoginDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDOK, m_btOK);
 	DDX_Control(pDX, IDCANCEL, m_btCancel);
+	DDX_Control(pDX, IDCANCEL2, m_btDemo);
 }
 
 
@@ -32,6 +33,7 @@ BEGIN_MESSAGE_MAP(CWebLoginDlg, CDialog)
 	ON_WM_CTLCOLOR()
 	ON_WM_PAINT()
 	ON_BN_CLICKED(IDOK, &CWebLoginDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDCANCEL2, &CWebLoginDlg::OnBnClickedCancel2)
 END_MESSAGE_MAP()
 
 
@@ -42,8 +44,10 @@ BOOL CWebLoginDlg::OnInitDialog()
 	CString str2;
 	m_btOK.SetImage(_T("Picture\\bt_ok.png"));
 	m_btCancel.SetImage(_T("Picture\\bt_cancel.png"));
+	m_btDemo.SetImage(_T("Picture\\bt_cancel.png"));
 	m_btCancel.SetTextColor(DEFALUT_TXT_COLOR);
 	m_btOK.SetTextColor(DEFALUT_TXT_COLOR);	
+	m_btDemo.SetTextColor(DEFALUT_TXT_COLOR);	
 	if (!theLang.m_bDefaultLang)
 	{
 		SetFont(&theLang.m_dialogFont);
@@ -51,6 +55,8 @@ BOOL CWebLoginDlg::OnInitDialog()
 		theLang.TranslateDlgItem(pCtrl,IDS_OK);
 		pCtrl=GetDlgItem(IDCANCEL);
 		theLang.TranslateDlgItem(pCtrl,IDS_CANCEL);
+		pCtrl=GetDlgItem(IDCANCEL2);
+		theLang.TranslateDlgItem(pCtrl,IDS_DEMOBTN);
 	}
 	
 	return TRUE;
@@ -112,4 +118,10 @@ void CWebLoginDlg::OnPaint()
 		dc.FillSolidRect(rect,DEFALUT_BACKGROUND_COLOR);
 		CDialog::OnPaint();
 	}
+}
+void CWebLoginDlg::OnBnClickedCancel2()
+{
+	m_bDemo=TRUE;
+	m_bTrainingMode=TRUE;
+	OnOK();
 }

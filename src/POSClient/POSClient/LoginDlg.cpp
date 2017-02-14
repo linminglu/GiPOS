@@ -825,7 +825,7 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				}
 				else if(fileName.Right(4)==_T(".db3"))
 				{//平板数据文件
-					CString newPath=_T("../pad_server/file")+fileName;
+					CString newPath=_T("../pad_server/file/")+fileName;
 					MoveFile(fullPath,newPath);
 					continue;
 				}
@@ -911,7 +911,7 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 }
 void CLoginDlg::OnBnClickedSync()
 {
-	if(!theApp.IS_SERVER)
+	if(!theApp.IS_SERVER||m_bTrainingMode)
 		return;
 	m_pSyncBtn->SetIcon((HICON)NULL,CRoundButton2::RIGHTUP);
 	KillTimer(1002);

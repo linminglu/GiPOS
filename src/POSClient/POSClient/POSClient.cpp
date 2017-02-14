@@ -1614,7 +1614,7 @@ BOOL CPOSClientApp::CheckInit()
 		CWebLoginDlg dlg;
 		if(dlg.DoModal()==IDCANCEL)
 			return FALSE;
-		else
+		else if(dlg.m_bDemo==FALSE)
 		{
 			splash.SetProgress( 30, IDS_DOWNLOAD);
 			if(CLoginDlg::DoDownload(NULL)==0)

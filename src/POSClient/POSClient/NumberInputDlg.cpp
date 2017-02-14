@@ -223,7 +223,7 @@ BOOL NumberInputDlg::PreTranslateMessage(MSG* pMsg)
 			OnNumBnClicked(pMsg->wParam-VK_NUMPAD0+IDC_BUTTON0);
 			return TRUE;
 		}
-		else if (pMsg->wParam==VK_DECIMAL)
+		else if (pMsg->wParam==VK_DECIMAL||pMsg->wParam==VK_OEM_PERIOD)
 		{
 			OnBnClickedButtonDot();
 			return TRUE;

@@ -15,6 +15,8 @@ public:
 	enum { IDD = IDD_WEBLOGIN };
 	CRoundButton2 m_btOK;
 	CRoundButton2 m_btCancel;
+	CRoundButton2 m_btDemo;
+	BOOL m_bDemo;
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
@@ -25,4 +27,5 @@ public:
 	virtual BOOL OnInitDialog();
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnPaint();
+	afx_msg void OnBnClickedCancel2();
 };
