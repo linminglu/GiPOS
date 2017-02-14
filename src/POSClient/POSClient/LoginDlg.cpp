@@ -806,7 +806,7 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 			}
 			NetFile.Close();
 			CString strRestart=_T("restaurant macros tax_primary user_workstations");
-			BOOL bNeedRestart=TRUE;
+			BOOL bNeedRestart=FALSE;
 			CZipArchive zip;
 			zip.Open(_T("_tmp_download"));
 			int zip_count=zip.GetNoEntries();

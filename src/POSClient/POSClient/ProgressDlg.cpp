@@ -59,7 +59,9 @@ void ProgressDlg::Step(int nPos,CString msg)
 void ProgressDlg::Start()
 {
 	Reset();
-	mCtrlHint.SetWindowText(_T("Please wait..."));
+	CString str2;
+	theLang.LoadString(str2,IDS_DOWNLOAD);
+	mCtrlHint.SetWindowText(str2);
 	ShowWindow(SW_SHOW);
 	SetTimer(1001,1000,NULL);//设置进度条更新时钟
 }
