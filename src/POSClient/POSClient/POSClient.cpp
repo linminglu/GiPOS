@@ -875,7 +875,10 @@ int CPOSClientApp::GetDeviceID()
 #if defined(WEB_VERSION)
 		HardwareInfo hard;
 		m_strDiskId=hard.GetHDSerial();
-		strSQL.Format(_T("SELECT * FROM user_workstations WHERE opos_device_name=\'%s\'"),m_strDiskId);
+		if(m_bTrainingMode)
+			strSQL.Format(_T("SELECT * FROM user_workstations"));
+		else
+			strSQL.Format(_T("SELECT * FROM user_workstations WHERE opos_device_name=\'%s\'"),m_strDiskId);
 		rs.Open( CRecordset::forwardOnly,strSQL);
 		if (rs.GetRecordCount()==0)
 		{//找不到，跳转到添加页面

@@ -820,13 +820,13 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				CString fullPath=strDir+_T("/")+fileName;
 				if(fileName.Right(4)==_T(".jpg"))
 				{//打印模版图片
-					MoveFile(fullPath,fileName);
+					MoveFileEx(fullPath,fileName,MOVEFILE_REPLACE_EXISTING);
 					continue;
 				}
 				else if(fileName.Right(4)==_T(".db3"))
 				{//平板数据文件
 					CString newPath=_T("../pad_server/file/")+fileName;
-					MoveFile(fullPath,newPath);
+					MoveFileEx(fullPath,newPath,MOVEFILE_REPLACE_EXISTING);
 					continue;
 				}
 				
