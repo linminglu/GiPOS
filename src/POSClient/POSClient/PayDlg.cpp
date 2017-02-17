@@ -1054,7 +1054,6 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 
 		double actualPaid=0;//实收金额，不扣除找零
 		actualPaid=fPayed;
-		pApp->m_cusDisplay.Display(fPayed,3);
 		double fChange=fPayed-m_checkDlg[active].m_fDebt;
 		double fTips=0;
 		if(fChange>=0.01)

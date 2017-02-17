@@ -16,6 +16,7 @@ public:
 	CRoundButton2 m_btCancel;
 	CRoundButton2 m_addButton;
 	CRoundButton2 m_editButton;
+	CRoundButton2 m_delButton;
 	CRoundButton2 m_softButton;
 	CEdit m_edit;
 	CListCtrl m_list;
@@ -46,4 +47,5 @@ public:
 	afx_msg void OnBnClickedButtonSoftkey();
 	afx_msg void OnPaint();
 	afx_msg void OnBnClickedCancel();
+	afx_msg void OnBnClickedButtonDel();
 };

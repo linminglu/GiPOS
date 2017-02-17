@@ -23,6 +23,7 @@ CREATE TABLE `print_templates` (
 
 ALTER TABLE www_version ADD COLUMN pad_data int(11) DEFAULT NULL;
 ALTER TABLE www_version ADD COLUMN pad_picture int(11) DEFAULT NULL;
+UPDATE course_detail SET price=0;
 
 UPDATE total_statistics SET db_version='20170201';
 ************************************************************

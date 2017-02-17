@@ -31,6 +31,7 @@ void CustomerSearchDlg2::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON_OK, m_btOK);
 	DDX_Control(pDX, IDCANCEL2, m_btCancel);
 	DDX_Control(pDX, IDC_BUTTON_ADD, m_addButton);
+	DDX_Control(pDX, IDC_BUTTON_DEL,m_delButton);
 	DDX_Control(pDX, IDC_BUTTON_EDIT, m_editButton);
 	DDX_Control(pDX, IDC_BUTTON_SOFTKEY, m_softButton);
 	DDX_Text(pDX, IDC_EDIT2, m_strResult);
@@ -47,6 +48,7 @@ BEGIN_MESSAGE_MAP(CustomerSearchDlg2, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SOFTKEY, &CustomerSearchDlg2::OnBnClickedButtonSoftkey)
 	ON_WM_PAINT()
 	ON_BN_CLICKED(IDCANCEL2, &CustomerSearchDlg2::OnBnClickedCancel)
+	ON_BN_CLICKED(IDC_BUTTON_DEL, &CustomerSearchDlg2::OnBnClickedButtonDel)
 END_MESSAGE_MAP()
 
 
@@ -86,6 +88,7 @@ BOOL CustomerSearchDlg2::OnInitDialog()
 	m_btCancel.SetImage(_T("Picture\\bt_cancel.png"));
 	m_addButton.SetImage(_T("Picture\\bt_orange_71.png"));
 	m_editButton.SetImage(_T("Picture\\bt_orange_71.png"));
+	m_delButton.SetImage(_T("Picture\\bt_orange_71.png"));
 	m_softButton.SetImage(_T("Picture\\softboard.png"));
 	m_addButton.ShowWindow(SW_SHOW);
 	m_editButton.ShowWindow(SW_SHOW);
@@ -101,6 +104,7 @@ BOOL CustomerSearchDlg2::OnInitDialog()
 	m_list.InsertColumn(3,str2,LVCFMT_LEFT,300);
 	m_editButton.SetTextColor(DEFALUT_TXT_COLOR);
 	m_addButton.SetTextColor(DEFALUT_TXT_COLOR);
+	m_delButton.SetTextColor(DEFALUT_TXT_COLOR);
 	m_btOK.SetTextColor(DEFALUT_TXT_COLOR);
 	m_btCancel.SetTextColor(DEFALUT_TXT_COLOR);
 	Search(_T(""));
@@ -251,4 +255,23 @@ void CustomerSearchDlg2::OnBnClickedCancel()
 {
 	m_bIgnore=FALSE;
 	OnCancel();
+}
+
+void CustomerSearchDlg2::OnBnClickedButtonDel()
+{
+	POSITION pos=m_list.GetFirstSelectedItemPosition(); 
+	if   (NULL   ==   pos) 
+	{
+		POSMessageBox(IDS_SELECTRECORD); 
+		return; 
+	}
+	int   index   =   m_list.GetNextSelectedItem(pos);
+
+	if(POSMessageBox(IDS_DELCONFIRM,MB_YESNO)==IDOK)
+	{
+		CString strSQL;
+		strSQL.Format(_T("DELETE FROM customer WHERE customer_id=%d"),m_list.GetItemData(index));
+		theDB.ExecuteSQL(strSQL);
+		OnEnChangeEdit1();
+	}
 }

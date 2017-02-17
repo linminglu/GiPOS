@@ -400,6 +400,14 @@ void ComboMealDlg::ShowCurrentPage()
 				{
 					pButton2->SetStrTop(_T(""));
 				}
+				if(m_Items[index].price>0.001)
+				{
+					pButton2->m_strBottom.Format(_T("%s%g"),theApp.CURRENCY_SYMBOL,m_Items[index].price);
+				}
+				else
+				{
+					pButton2->m_strBottom=_T("");
+				}
 				pButton2->SetWindowText(itemName);
 
 				pButton2->ShowWindow(SW_SHOW);
@@ -557,8 +565,9 @@ void ComboMealDlg::OnItemBnClicked(UINT uID)
 	}
 	item->belongto=pParentItem;
 	item->n_belong_item=-pParentItem->item_id;
-	item->item_price=0;
-	item->sales_amount=m_Items[index].price*item->quantity;
+	item->item_price=m_Items[index].price;
+	item->total_price=m_Items[index].price*item->quantity;
+	item->sales_amount=item->total_price;
 	wcsncpy_s(item->unit,m_Items[index].unit,9);
 	wcsncpy_s(item->item_name,m_Items[index].item_name1,63);
 	wcsncpy_s(item->item_name2,m_Items[index].item_name2,31);
@@ -656,7 +665,7 @@ void ComboMealDlg::ShowCourse(int index,CString filter)
 		CString strSQL;
 		//detail
 		strSQL.Format(_T("SELECT * FROM(SELECT * FROM menu_item,course_detail WHERE menu_item.item_id=course_detail.menu_item_id AND course_group_id=%d")
-			_T(" AND (item_id LIKE \'%s%%\'OR nlu LIKE \'%%%s%%\'))AS T LEFT JOIN bargain_price_item ON T.item_id=bargain_price_item.bargain_item_number;")
+			_T(" AND (item_id LIKE \'%s%%\'OR nlu LIKE \'%%%s%%\'))AS T LEFT JOIN bargain_price_item ON T.item_id=bargain_price_item.bargain_item_number")
 			,course.id,filter,filter);
 		rs.Open( CRecordset::forwardOnly,strSQL);
 		while(!rs.IsEOF())
@@ -676,7 +685,17 @@ void ComboMealDlg::ShowCourse(int index,CString filter)
 			while(!rs.IsEOF())
 			{
 				MenuItem item=readCourseItem(rs);
-				m_Items.push_back(item);
+				BOOL bHave=FALSE;
+				for(int i=0;i<m_Items.size();i++)
+				{
+					if(m_Items[i].item_number==item.item_number)
+					{
+						bHave=TRUE;
+						break;
+					}
+				}
+				if(!bHave)
+					m_Items.push_back(item);
 				rs.MoveNext();
 			}
 			rs.Close();
@@ -728,8 +747,9 @@ MenuItem ComboMealDlg::readCourseItem(CRecordset& rs)
 		rs.GetFieldValue(_T("price"), variant);
 		item.price=variant.m_fltVal;
 	}catch(...){
-		rs.GetFieldValue(_T("price_1"), variant);
-		item.price=variant.m_fltVal;
+		//rs.GetFieldValue(_T("price_1"), variant);
+		//item.price=variant.m_fltVal;
+		item.price=0;
 	}
 	
 	//多种规格？
@@ -745,8 +765,9 @@ MenuItem ComboMealDlg::readCourseItem(CRecordset& rs)
 	item.condiment=variant.m_lVal;
 	rs.GetFieldValue(_T("tax_group"), variant);
 	item.tax_group=variant.m_lVal;
-//	item.price=0;
-	//价格为0，不需要打折服务费等信息
+	//打折收服务费从套餐继承
+	item.n_discount_level=pParentItem->n_discount_type;
+	item.n_service_level=pParentItem->n_service_type;
 	//沽清内容
 	variant.m_iVal=0;
 	rs.GetFieldValue(_T("bargain_stype"), variant);
@@ -1177,7 +1198,13 @@ void ComboMealDlg::FormatString(OrderDetail* pOrder,CString& strLine)
 		{
 			name.AppendFormat(_T("\n%s"),pOrder->description);
 		}
-		strLine.Format(_T("|%g%s|%s||"),pOrder->quantity,pOrder->unit,name);
+		strLine.Format(_T("|%g%s|%s"),pOrder->quantity,pOrder->unit,name);
+		CString decPlace;
+		decPlace.Format(_T("|%%.%df|"),theApp.DECIMAL_PLACES);
+		if(fabs(pOrder->total_price-0)>0.001)
+			strLine.AppendFormat(decPlace,pOrder->total_price);
+		else
+			strLine.Append(_T("||"));
 	}
 }
 /************************************************************************

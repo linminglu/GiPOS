@@ -490,6 +490,7 @@ BOOL CPOSClientApp::InitInstance()
 #if defined(WEB_VERSION)
 	int reg_pos=0;
 	strSQL.Format(_T("SELECT AES_DECRYPT(pos,\"%s1\") FROM pos_keys"),m_strResId);
+	try{
 	if(rs.Open(CRecordset::forwardOnly,strSQL))
 	{
 		if (!rs.IsEOF())
@@ -523,6 +524,8 @@ BOOL CPOSClientApp::InitInstance()
 		}
 		rs.Close();
 	}
+	}catch(...)
+	{}
 	if(reg_pos>0)
 	{//¼ì²é×¢²áÊý
 		strSQL.Format(_T("SELECT COUNT(*) FROM user_workstations WHERE opos_device_name IS NOT NULL"));
