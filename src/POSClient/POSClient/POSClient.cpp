@@ -402,23 +402,46 @@ BOOL CPOSClientApp::InitInstance()
 	}
 	CString strSQL;
 	CRecordset rs(&theDB);
-	strSQL.Format(_T("SELECT cr_url,cr_res_id,cr_res_pwd,edit_mode FROM webreport_setting"));
-	if(rs.Open(CRecordset::forwardOnly,strSQL))
-	{
-		if (!rs.IsEOF())
+	try{
+		strSQL.Format(_T("SELECT cr_url,cr_res_id,cr_res_pwd,edit_mode FROM webreport_setting"));
+		if(rs.Open(CRecordset::forwardOnly,strSQL))
 		{
-			CString strVal;
-			rs.GetFieldValue(_T("cr_url"),strVal);
-			m_strCloudURL.Format(_T("%s"),strVal);
-			rs.GetFieldValue(_T("cr_res_id"),strVal);
-			m_strResId.Format(_T("%s"),strVal);
-			rs.GetFieldValue(_T("cr_res_pwd"),strVal);
-			m_strPhone.Format(_T("%s"),strVal);
-			rs.GetFieldValue(_T("edit_mode"),strVal);
-			m_editMode=_wtoi(strVal);
+			if (!rs.IsEOF())
+			{
+				CString strVal;
+				rs.GetFieldValue(_T("cr_url"),strVal);
+				m_strCloudURL.Format(_T("%s"),strVal);
+				rs.GetFieldValue(_T("cr_res_id"),strVal);
+				m_strResId.Format(_T("%s"),strVal);
+				rs.GetFieldValue(_T("cr_res_pwd"),strVal);
+				m_strPhone.Format(_T("%s"),strVal);
+				rs.GetFieldValue(_T("edit_mode"),strVal);
+				m_editMode=_wtoi(strVal);
+			}
+			rs.Close();
 		}
-		rs.Close();
+	}catch(...)
+	{
+		POSMessageBox(IDS_DATABASE_LOWER);
+		return FALSE;
 	}
+	strSQL.Format(_T("select * from vip_setting"));
+	rs.Open( CRecordset::forwardOnly,strSQL);
+	if (!rs.IsEOF())
+	{
+		CString strVal;
+		rs.GetFieldValue(_T("ip_addr"),strVal);
+		strVal.Trim();
+		m_strVipURL=strVal;
+		int index=strVal.Find(':');
+		m_nVipPort=80;
+		if (index>0)
+		{
+			m_strVipURL=strVal.Left(index);
+			m_nVipPort=_wtoi(strVal.Right(strVal.GetLength()-index-1));
+		}
+	}
+	rs.Close();
 #if defined(WEB_VERSION)
 	if(CheckInit()==FALSE)
 		return FALSE;

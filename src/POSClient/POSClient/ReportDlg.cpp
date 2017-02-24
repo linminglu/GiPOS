@@ -340,7 +340,7 @@ void CReportDlg::ShowReport1(BOOL bSms)
 		m_strResult.Append(FormatString(fvalue,7));
 		m_strResult.Append(_T("\r\n"));
 		fTotalSale=fvalue;
-		
+
 	}
 	rs.Close();
 
@@ -464,24 +464,24 @@ void CReportDlg::ShowReport1(BOOL bSms)
 		if(remain>=1)
 		{//分段销量
 			try{
-			theLang.LoadString(str2,IDS_RPTPERIOD);
-			m_strResult.Append(str2);
-			strSQL.Format(_T("{CALL c_period_sales(\'%s\',\'%s\')}"),m_strStartDate,m_strEndDate);
-			rs.Open( CRecordset::forwardOnly,strSQL);
-			while (!rs.IsEOF())
-			{
-				rs.GetFieldValue((short)1,str2);
-				rs.GetFieldValue((short)2,strVal);
-				fvalue=_wtof(strVal);
-				m_strResult.Append(FormatString(str2,14,bSms));
-				m_strResult.Append(FormatString(fvalue,6));
-				if(abs(fActualSale)>0.001)
-					m_strResult.AppendFormat(_T(" %5.1f%%\r\n"),(100*fvalue)/fActualSale);
-				else
-					m_strResult.AppendFormat(_T("   0.0%%\r\n"));
-				rs.MoveNext();
-			}
-			rs.Close();
+				theLang.LoadString(str2,IDS_RPTPERIOD);
+				m_strResult.Append(str2);
+				strSQL.Format(_T("{CALL c_period_sales(\'%s\',\'%s\')}"),m_strStartDate,m_strEndDate);
+				rs.Open( CRecordset::forwardOnly,strSQL);
+				while (!rs.IsEOF())
+				{
+					rs.GetFieldValue((short)1,str2);
+					rs.GetFieldValue((short)2,strVal);
+					fvalue=_wtof(strVal);
+					m_strResult.Append(FormatString(str2,14,bSms));
+					m_strResult.Append(FormatString(fvalue,6));
+					if(abs(fActualSale)>0.001)
+						m_strResult.AppendFormat(_T(" %5.1f%%\r\n"),(100*fvalue)/fActualSale);
+					else
+						m_strResult.AppendFormat(_T("   0.0%%\r\n"));
+					rs.MoveNext();
+				}
+				rs.Close();
 			}catch(...)
 			{}
 		}
@@ -553,6 +553,87 @@ void CReportDlg::ShowReport1(BOOL bSms)
 		rs.MoveNext();
 	}
 	rs.Close();
+	//会员充值
+	if(macrosInt[_T("QUERY_MEMBER_REPORT")]==1)
+	{
+		theLang.LoadString(str2,IDS_VIPRECHARGE);
+		CString strVip;
+		strVip.Format(_T("\r\n  <<  %s >>\r\n"),str2);
+		m_strResult.Append(strVip);
+		try{
+			if (!theApp.m_strVipURL.IsEmpty())
+			{
+				CString ip_addr;
+				ip_addr.Format(_T("/api/get_recharge/1/json/?source=agile&date_from=%s&date_to=%s&guid=%s&machine_id=%s&random=%d")
+					,m_strStartDate,m_strEndDate,theApp.m_strResId,URLEncode(theApp.m_strHostName),rand()%32767);
+				if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("简体中文"))
+					ip_addr.AppendFormat(_T("&lang=zh-CN"));
+				else if(theLang.m_strLang==_T("繁體中文"))
+					ip_addr.AppendFormat(_T("&lang=zh-TW"));
+				else
+					ip_addr.AppendFormat(_T("&lang=en"));
+				LOG4CPLUS_DEBUG(log_pos,(LPCTSTR)ip_addr);
+				CInternetSession session;
+				session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 20);
+				session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
+				session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
+
+				CHttpConnection* pConnection = session.GetHttpConnection(theApp.m_strVipURL,(INTERNET_PORT)theApp.m_nVipPort);
+				CHttpFile* pFile = pConnection->OpenRequest(CHttpConnection::HTTP_VERB_GET,ip_addr); 
+				pFile->SendRequest();
+				DWORD dwRet;
+				pFile->QueryInfoStatusCode(dwRet);
+				if(dwRet == HTTP_STATUS_OK)
+				{
+					char buf[1024]={0};
+					pFile->Read((LPTSTR)buf,sizeof(buf)-1);
+					LOG4CPLUS_DEBUG(log_pos,buf);
+					pFile->Close();
+					for (int i=strlen(buf)-1;i>=0;i--)
+					{
+						if(buf[i]=='}')
+							break;
+						buf[i]=0;
+					}
+					int wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, buf, strlen(buf), NULL, 0);
+					TCHAR* sz1 = new TCHAR[wcsLen0 + 1];
+					::MultiByteToWideChar(CP_UTF8, NULL, buf, -1, sz1, wcsLen0);
+					sz1[wcsLen0] = '\0';
+					JSONVALUE root;
+					if(root.Parse(sz1,JSON_FLAG_LOOSE))
+					{
+						double ori_recharge=root[_T("ori_recharge")].asDouble();
+						JSONVALUE arrayItems=root[_T("detail")];
+						for (int j=0;j<arrayItems.Size();j++)
+						{
+							JSONVALUE jItem;
+							arrayItems.At(j,jItem);
+							CString name=jItem[_T("payment")].asCString();
+							m_strResult.Append(CReportDlg::FormatString(name,18,FALSE));
+							m_strResult.Append(CReportDlg::FormatString(jItem[_T("ori_amount")].asDouble(),8));
+							m_strResult.Append(_T("\r\n"));
+						}
+					}
+					delete sz1;
+				}
+				delete pFile;
+			}
+		}
+		catch (CInternetException* pEx)
+		{
+			TCHAR szErr[1024];
+			pEx->GetErrorMessage(szErr, 1024);
+			LOG4CPLUS_ERROR(log_pos,szErr);
+			pEx->Delete();
+			theLang.LoadString(str2,IDS_VIPRECHARGE);
+			m_strResult.AppendFormat(_T("%s:\tERROR\r\n"),str2);
+		}
+		catch(...)
+		{
+			LOG4CPLUS_ERROR(log_pos,"Catch Exception GetLastError="<<GetLastError());
+		}
+	}
+
 	if(!bSms){
 		theLang.LoadString(str2,IDS_RPTRETURN);
 		m_strResult.Append(str2);

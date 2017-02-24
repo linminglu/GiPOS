@@ -373,95 +373,79 @@ void ShiftDlg::GetShiftInfoByPos()
 		BOOL bSet=FALSE;
 		//WEB 会员充值
 		try{
-			CRecordset rs1(&theDB);
-			strSQL.Format(_T("select * from vip_setting"));
-			rs1.Open( CRecordset::forwardOnly,strSQL);
-			if (!rs1.IsEOF())
+			if (!theApp.m_strVipURL.IsEmpty())
 			{
-				CString ip_addr,server;
-				rs1.GetFieldValue(_T("ip_addr"),ip_addr);
-				if (!ip_addr.IsEmpty())
-				{
-					
-					server=ip_addr;
-					int index=ip_addr.Find(':');
-					int port=80;
-					if (index>0)
-					{
-						server=ip_addr.Left(index);
-						port=_wtoi(ip_addr.Right(ip_addr.GetLength()-index-1));
-					}
-					ip_addr.Format(_T("/api/get_dishes/1/json/?source=agile&date_from=%s&date_to=%s&guid=%s&machine_id=%s&random=%d")
-						,str_from,str_to,theApp.m_strResId,URLEncode(theApp.m_strHostName),rand()%32767);
-					if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("简体中文"))
-						ip_addr.AppendFormat(_T("&lang=zh-CN"));
-					else if(theLang.m_strLang==_T("繁體中文"))
-						ip_addr.AppendFormat(_T("&lang=zh-TW"));
-					else
-						ip_addr.AppendFormat(_T("&lang=en"));
-LOG4CPLUS_DEBUG(log_pos,(LPCTSTR)ip_addr);
-					CInternetSession session;
-					session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 20);
-					session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
-					session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
+				CString ip_addr;
+				ip_addr.Format(_T("/api/get_recharge/1/json/?source=agile&date_from=%s&date_to=%s&guid=%s&machine_id=%s&random=%d")
+					,str_from,str_to,theApp.m_strResId,URLEncode(theApp.m_strHostName),rand()%32767);
+				if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("简体中文"))
+					ip_addr.AppendFormat(_T("&lang=zh-CN"));
+				else if(theLang.m_strLang==_T("繁體中文"))
+					ip_addr.AppendFormat(_T("&lang=zh-TW"));
+				else
+					ip_addr.AppendFormat(_T("&lang=en"));
+				LOG4CPLUS_DEBUG(log_pos,(LPCTSTR)ip_addr);
+				CInternetSession session;
+				session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 20);
+				session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
+				session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
 
-					CHttpConnection* pConnection = session.GetHttpConnection(server,(INTERNET_PORT)port);
-					CHttpFile* pFile = pConnection->OpenRequest(CHttpConnection::HTTP_VERB_GET,ip_addr); 
-					pFile->SendRequest();
-					DWORD dwRet;
-					pFile->QueryInfoStatusCode(dwRet);
-					if(dwRet == HTTP_STATUS_OK)
+				CHttpConnection* pConnection = session.GetHttpConnection(theApp.m_strVipURL,(INTERNET_PORT)theApp.m_nVipPort);
+				CHttpFile* pFile = pConnection->OpenRequest(CHttpConnection::HTTP_VERB_GET,ip_addr); 
+				pFile->SendRequest();
+				DWORD dwRet;
+				pFile->QueryInfoStatusCode(dwRet);
+				if(dwRet == HTTP_STATUS_OK)
+				{
+					char buf[1024]={0};
+					pFile->Read((LPTSTR)buf,sizeof(buf)-1);
+					LOG4CPLUS_DEBUG(log_pos,buf);
+					pFile->Close();
+					for (int i=strlen(buf)-1;i>=0;i--)
 					{
-						char buf[1024]={0};
-						pFile->Read((LPTSTR)buf,sizeof(buf)-1);
-LOG4CPLUS_DEBUG(log_pos,buf);
-						pFile->Close();
-						for (int i=strlen(buf)-1;i>=0;i--)
+						if(buf[i]=='}')
+							break;
+						buf[i]=0;
+					}
+					int wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, buf, strlen(buf), NULL, 0);
+					TCHAR* sz1 = new TCHAR[wcsLen0 + 1];
+					::MultiByteToWideChar(CP_UTF8, NULL, buf, -1, sz1, wcsLen0);
+					sz1[wcsLen0] = '\0';
+					JSONVALUE root;
+					if(root.Parse(sz1,JSON_FLAG_LOOSE))
+					{
+						double ori_recharge=root[_T("ori_recharge")].asDouble();
+						total+=ori_recharge;
+						JSONVALUE arrayItems=root[_T("detail")];
+						if(arrayItems.Size()==0)
 						{
-							if(buf[i]=='}')
-								break;
-							buf[i]=0;
+							theLang.LoadString(str2,IDS_VIPRECHARGE);
+							m_strMsg.Append(CReportDlg::FormatString(str2,18,FALSE));
+							m_strMsg.Append(CReportDlg::FormatString(ori_recharge,8));
+							m_strMsg.Append(_T("\r\n"));
 						}
-						int wcsLen0 = ::MultiByteToWideChar(CP_UTF8, NULL, buf, strlen(buf), NULL, 0);
-						TCHAR* sz1 = new TCHAR[wcsLen0 + 1];
-						::MultiByteToWideChar(CP_UTF8, NULL, buf, -1, sz1, wcsLen0);
-						sz1[wcsLen0] = '\0';
-						JSONVALUE root;
-						if(root.Parse(sz1,JSON_FLAG_LOOSE))
-						{
-							double ori_recharge=root[_T("ori_recharge")].asDouble();
-							total+=ori_recharge;
-							JSONVALUE arrayItems=root[_T("detail")];
-							if(arrayItems.Size()==0)
+						else
+						{//详细金额
+							theLang.LoadString(str2,IDS_VIPRECHARGE);
+							m_strMsg.AppendFormat(_T("%s:\r\n"),str2);
+							for (int j=0;j<arrayItems.Size();j++)
 							{
-								theLang.LoadString(str2,IDS_VIPRECHARGE);
-								m_strMsg.Append(CReportDlg::FormatString(str2,18,FALSE));
-								m_strMsg.Append(CReportDlg::FormatString(ori_recharge,8));
+								JSONVALUE jItem;
+								arrayItems.At(j,jItem);
+								CString name=jItem[_T("payment")].asCString();
+								m_strMsg.Append(CReportDlg::FormatString(name,18,FALSE));
+								m_strMsg.Append(CReportDlg::FormatString(jItem[_T("ori_amount")].asDouble(),8));
 								m_strMsg.Append(_T("\r\n"));
 							}
-							else
-							{//详细金额
-								theLang.LoadString(str2,IDS_VIPRECHARGE);
-								m_strMsg.AppendFormat(_T("%s:\r\n"),str2);
-								for (int j=0;j<arrayItems.Size();j++)
-								{
-									JSONVALUE jItem;
-									arrayItems.At(j,jItem);
-									CString name=jItem[_T("payment")].asCString();
-									m_strMsg.Append(CReportDlg::FormatString(name,18,FALSE));
-									m_strMsg.Append(CReportDlg::FormatString(jItem[_T("ori_amount")].asDouble(),8));
-									m_strMsg.Append(_T("\r\n"));
-								}
-							}
-							
-							bSet=TRUE;
 						}
-						delete sz1;
+
+						bSet=TRUE;
 					}
-					delete pFile;
+					delete sz1;
 				}
+				delete pFile;
+
 			}
-			rs1.Close();
 		}
 		catch (CInternetException* pEx)
 		{
@@ -556,7 +540,7 @@ LOG4CPLUS_DEBUG(log_pos,buf);
 				m_strMsg.Append(CReportDlg::FormatString(fvalue,8));
 				m_strMsg.Append(_T("\r\n"));
 			}
-			
+
 		}
 		rs.Close();
 

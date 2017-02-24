@@ -1011,28 +1011,16 @@ void COrderPage::DeletePay(long order_id)
 						rs.GetFieldValue(_T("web_id"),variant);
 						long web_id=variant.m_lVal;
 						try{
-							CRecordset rs1(&theDB);
-							strSQL.Format(_T("select * from vip_setting"));
-							rs1.Open( CRecordset::forwardOnly,strSQL);
-							if (!rs1.IsEOF())
+							if (!theApp.m_strVipURL.IsEmpty())
 							{
-								CString ip_addr,server;
-								rs1.GetFieldValue(_T("ip_addr"),ip_addr);
-								server=ip_addr;
-								int index=ip_addr.Find(':');
-								int port=80;
-								if (index>0)
-								{
-									server=ip_addr.Left(index);
-									port=_wtoi(ip_addr.Right(ip_addr.GetLength()-index-1));
-								}
+								CString ip_addr;
 								ip_addr.Format(_T("/orgs/revoke_storedvaluecard//?source=agile&username=%s&user_id=%s&guid=%s&machine_id=%s")
 									,URLEncode(theApp.m_strUserName),theApp.m_strUserID,theApp.m_strResId,URLEncode(theApp.m_strHostName));
 								CInternetSession session;
 								session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 20);
 								session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
 								session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
-								CHttpConnection* pConnection = session.GetHttpConnection(server,(INTERNET_PORT)port);
+								CHttpConnection* pConnection = session.GetHttpConnection(theApp.m_strVipURL,(INTERNET_PORT)theApp.m_nVipPort);
 								CHttpFile* pFile = pConnection->OpenRequest(CHttpConnection::HTTP_VERB_GET,ip_addr); 
 								pFile->SendRequest();
 								DWORD dwRet;
@@ -1059,7 +1047,6 @@ void COrderPage::DeletePay(long order_id)
 								}
 								delete pFile;
 							}
-							rs1.Close();
 						}catch(...)
 						{
 						}

@@ -744,19 +744,10 @@ void FunctionDlg::OnBnClickedWebNewCustomer()
 		int auth=OrderDlg::RequeastAuth(userid,_T("edit_customer"));
 		if(auth!=0)
 			return;
-		CString strSQL;
-		CRecordset rs(&theDB);
-		strSQL.Format(_T("select * from vip_setting"));
-		rs.Open( CRecordset::forwardOnly,strSQL);
-		if (!rs.IsEOF())
+		if (!theApp.m_strVipURL.IsEmpty())
 		{
-			CString ip_addr,str_url;
-			rs.GetFieldValue(_T("ip_addr"),ip_addr);
-			//rs.GetFieldValue(_T("res_id"),res_id);
-			if (ip_addr.Find(_T("http"))==0)
-				str_url=ip_addr;
-			else
-				str_url.Format(_T("http://%s"),ip_addr);
+			CString str_url;
+			str_url.Format(_T("http://%s:%d"),theApp.m_strVipURL,theApp.m_nVipPort);
 			str_url.AppendFormat(_T("/orgs/storedvaluecard_open_card//?source=agile&username=%s&user_id=%s&guid=%s&machine_id=%s")
 								,URLEncode(theApp.m_strUserName),theApp.m_strUserID,theApp.m_strResId,URLEncode(theApp.m_strHostName));
 			if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("简体中文"))
@@ -795,19 +786,10 @@ void FunctionDlg::OnBnClickedWebRecharge()
 		int auth=OrderDlg::RequeastAuth(userid,_T("edit_customer"));
 		if(auth!=0)
 			return;
-		CString strSQL;
-		CRecordset rs(&theDB);
-		strSQL.Format(_T("select * from vip_setting"));
-		rs.Open( CRecordset::forwardOnly,strSQL);
-		if (!rs.IsEOF())
+		if (!theApp.m_strVipURL.IsEmpty())
 		{
-			CString ip_addr,str_url;
-			rs.GetFieldValue(_T("ip_addr"),ip_addr);
-			//rs.GetFieldValue(_T("res_id"),res_id);
-			if (ip_addr.Find(_T("http"))==0)
-				str_url=ip_addr;
-			else
-				str_url.Format(_T("http://%s"),ip_addr);
+			CString str_url;
+			str_url.Format(_T("http://%s:%d"),theApp.m_strVipURL,theApp.m_nVipPort);
 			str_url.AppendFormat(_T("/orgs/storedvaluecard_recharge_card//?source=agile&username=%s&user_id=%s&guid=%s&machine_id=%s")
 								,URLEncode(theApp.m_strUserName),theApp.m_strUserID,theApp.m_strResId,URLEncode(theApp.m_strHostName));
 			if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("简体中文"))
@@ -841,20 +823,10 @@ void FunctionDlg::OnBnClickedViewVip()
 		return;
 	}
 	try{
-		OpenDatabase();
-		CString strSQL;
-		CRecordset rs(&theDB);
-		strSQL.Format(_T("select * from vip_setting"));
-		rs.Open( CRecordset::forwardOnly,strSQL);
-		if (!rs.IsEOF())
+		if (!theApp.m_strVipURL.IsEmpty())
 		{
-			CString ip_addr,str_url;
-			rs.GetFieldValue(_T("ip_addr"),ip_addr);
-			//rs.GetFieldValue(_T("res_id"),res_id);
-			if (ip_addr.Find(_T("http"))==0)
-				str_url=ip_addr;
-			else
-				str_url.Format(_T("http://%s"),ip_addr);
+			CString str_url;
+			str_url.Format(_T("http://%s:%d"),theApp.m_strVipURL,theApp.m_nVipPort);
 			str_url.AppendFormat(_T("/orgs/report_card_info//?auto_query=1&source=agile&username=%s&user_id=%s&guid=%s&machine_id=%s")
 				,URLEncode(theApp.m_strUserName),theApp.m_strUserID,theApp.m_strResId,URLEncode(theApp.m_strHostName));
 			if(theLang.m_strLang==_T("Default")||theLang.m_strLang==_T("简体中文"))

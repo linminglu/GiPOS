@@ -841,7 +841,7 @@ void FloorViewDlg::OnBnClickedDishMaked()
 					else
 					{
 						item.ismake=0;
-						strSQL.Format(_T("UPDATE order_head SET is_make=NULL WHERE order_head_id=%d"),m_headId);
+						strSQL.Format(_T("UPDATE order_head SET is_make=0 WHERE order_head_id=%d"),m_headId);
 					}
 					theDB.ExecuteSQL(strSQL);
 				}

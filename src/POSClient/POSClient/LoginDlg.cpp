@@ -609,20 +609,12 @@ void CLoginDlg::OnBnClickedButtonWebsite()
 void CLoginDlg::OnBnClickedButtonWebVip()
 {
 	try{
-		OpenDatabase();
-		CString strSQL;
-		CRecordset rs(&theDB);
-		strSQL.Format(_T("select * from vip_setting"));
-		rs.Open( CRecordset::forwardOnly,strSQL);
-		if (!rs.IsEOF())
+		if (!theApp.m_strVipURL.IsEmpty())
 		{
-			CString ip_addr;
-			rs.GetFieldValue(_T("ip_addr"),ip_addr);
 			CString strCurrentUrl;
-			strCurrentUrl.Format(_T("http://%s"),ip_addr);
+			strCurrentUrl.Format(_T("http://%s:%d"),theApp.m_strVipURL,theApp.m_nVipPort);
 			ShellExecute(GetSafeHwnd(), _T("OPEN"), strCurrentUrl, NULL, NULL,SW_NORMAL);
 		}
-		rs.Close();
 	}catch(...)
 	{
 	}
@@ -805,7 +797,7 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 				NetFile.Write(buffer,nReadCount);
 			}
 			NetFile.Close();
-			CString strRestart=_T("restaurant macros tax_primary user_workstations");
+			CString strRestart=_T("restaurant macros tax_primary user_workstations ");
 			BOOL bNeedRestart=FALSE;
 			CZipArchive zip;
 			zip.Open(_T("_tmp_download"));

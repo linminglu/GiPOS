@@ -818,23 +818,11 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 					POSMessageBox(IDS_TRAINMODE);
 					break;
 				}
-				CRecordset rs(&theDB);
-				strSQL.Format(_T("select * from vip_setting"));
-				rs.Open( CRecordset::forwardOnly,strSQL);
-				if (!rs.IsEOF())
+				if (!theApp.m_strVipURL.IsEmpty())
 				{
-					CString ip_addr,str_url;
-					rs.GetFieldValue(_T("ip_addr"),ip_addr);
-					ip_addr.Trim();
 					CustomerSearchDlg dlg;
-					dlg.server=ip_addr;
-					int index=ip_addr.Find(':');
-					dlg.port=80;
-					if (index>0)
-					{
-						dlg.server=ip_addr.Left(index);
-						dlg.port=_wtoi(ip_addr.Right(ip_addr.GetLength()-index-1));
-					}
+					dlg.server=theApp.m_strVipURL;
+					dlg.port=theApp.m_nVipPort;
 					if(dlg.DoModal()==IDCANCEL)
 						return;
 					strCardId=dlg.m_strCardId;
@@ -2271,8 +2259,17 @@ void PayDlg::OnBnClickedOK()
 		}
 		OrderDlg::SaveOrderToDB(m_pOrderList,&m_checkDlg);
 		if(m_strNum.IsEmpty())
+		{
+			//刷新edit_time,以便远程报表重新上传
+			if(!theApp.m_strEndTime.IsEmpty())
+			{
+				strSQL.Format(_T("UPDATE order_head SET edit_time=NOW() WHERE order_head_id=%d"),theApp.m_nOrderHeadid);
+				theDB.ExecuteSQL(strSQL);
+			}
+			theApp.m_strEndTime.Empty();
 			if(CleanTable(TRUE))//尝试清台
 				return;
+		}
 		if(!theApp.m_bRefund)
 		{
 			OnBnClickedPayment(IDC_SLU_BUTTON+1);//默认用ID 1支付
@@ -2337,7 +2334,7 @@ BOOL PayDlg::SetCheckName(LPCTSTR strName)
 			LOG4CPLUS_INFO(log_pos,"PayDlg::OnBnClickedCheckName Begin");
 			//去除'号
 			dlg.m_strInput.Replace('\'',' ');
-			if (dlg.m_strInput.GetLength()>20)
+			if (dlg.m_strInput.GetLength()>30)
 			{
 				POSMessageBox(IDS_TOOMUCH);
 				return FALSE;

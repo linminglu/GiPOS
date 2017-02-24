@@ -177,6 +177,8 @@ public:
 	CString m_strResId;//餐厅ID
 	CString m_strDiskId;//硬盘号
 	CString m_strCloudURL;//云服务器地址
+	CString m_strVipURL;  //会员服务器地址
+	int		m_nVipPort;
 	CString m_strPhone;//云服务绑定手机号
 	CString m_strVersion;
 	CString m_wxSubMchid;//微信子商户号
@@ -265,6 +267,7 @@ extern Logger log_pos;
 extern CDatabase theDB;
 extern BOOL m_bTrainingMode;//是否培训模式
 extern int m_bNotReg;
+//extern CString m_strFont;
 extern DWORD m_dTextColor;
 extern DWORD DEFALUT_BACKGROUND_COLOR;
 extern std::map<CString,int> macrosInt;
