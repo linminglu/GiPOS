@@ -805,72 +805,76 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 			for(int i=0;i<zip_count;i++)
 			{
 				try{
-				zip.ExtractFile(i,strDir);
-				CZipFileHeader fhInfo;
-				zip.GetFileInfo(fhInfo,i);
-				CString fileName=fhInfo.GetFileName();
-				CString fullPath=strDir+_T("/")+fileName;
-				if(fileName.Right(4)==_T(".jpg"))
-				{//打印模版图片
-					MoveFileEx(fullPath,fileName,MOVEFILE_REPLACE_EXISTING);
-					continue;
-				}
-				else if(fileName.Right(4)==_T(".db3"))
-				{//平板数据文件
-					CString newPath=_T("../pad_server/file/")+fileName;
-					MoveFileEx(fullPath,newPath,MOVEFILE_REPLACE_EXISTING);
-					continue;
-				}
-				
-				CStdioFile file;
-				file.Open(fullPath,CFile::modeRead);
-				CString line,columns,db_col;
-				file.ReadString(line);
-				file.Close();
-				strSQL.Format(_T("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='%s' AND TABLE_SCHEMA='coolroid'"),fileName);
-				rs.Open(CRecordset::forwardOnly,strSQL);
-				while (!rs.IsEOF())
-				{
-					rs.GetFieldValue((short)0,strDbVer);
-					db_col.AppendFormat(_T("%s "),strDbVer);
-					rs.MoveNext();
-				}
-				rs.Close();
-				int nTokenPos = 0;
-				CString strToken = line.Tokenize(_T(","), nTokenPos);
-				while (!strToken.IsEmpty())
-				{
-					if(db_col.Find(strToken)>=0)
-					{
-						columns.AppendFormat(_T("`%s`,"),strToken);
+					zip.ExtractFile(i,strDir);
+					CZipFileHeader fhInfo;
+					zip.GetFileInfo(fhInfo,i);
+					CString fileName=fhInfo.GetFileName();
+					CString fullPath=strDir+_T("/")+fileName;
+					if(fileName.Right(4)==_T(".jpg"))
+					{//打印模版图片
+						MoveFileEx(fullPath,fileName,MOVEFILE_REPLACE_EXISTING);
+						continue;
 					}
-					else
-					{
-						columns.AppendFormat(_T("@%s,"),strToken);
+					else if(fileName.Right(4)==_T(".db3"))
+					{//平板数据文件
+						CString newPath=_T("../pad_server/file/")+fileName;
+						MoveFileEx(fullPath,newPath,MOVEFILE_REPLACE_EXISTING);
+						continue;
 					}
-					strToken = line.Tokenize(_T(","), nTokenPos);
-				}
-				columns.Delete(columns.GetLength()-1);
 
-				strSQL.Format(_T("TRUNCATE TABLE %s"),fileName);
-				db.ExecuteSQL(strSQL);
-				strSQL.Format(_T("LOAD DATA LOCAL INFILE '%s' REPLACE INTO TABLE %s FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\\n' IGNORE 1 LINES (%s)"),fullPath,fileName,columns);
-				db.ExecuteSQL(strSQL);
-				if(!bNeedRestart&&progress)
-				{
-					int nPos=strRestart.Find(fileName);
-					if(nPos>=0)
-						bNeedRestart=TRUE;
-				}
-				if(fileName.Compare(_T("print_templates"))==0)
-				{
-					//通知打印服务重新加载
-					HWND hWnd=::FindWindow(_T("CPrintServerDlg"),_T("AgilePrintServer"));
-					if(hWnd)
+					CStdioFile file;
+					file.Open(fullPath,CFile::modeRead);
+					CString line,columns,db_col;
+					file.ReadString(line);
+					file.Close();
+					strSQL.Format(_T("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='%s' AND TABLE_SCHEMA='coolroid'"),fileName);
+					rs.Open(CRecordset::forwardOnly,strSQL);
+					while (!rs.IsEOF())
 					{
-						::PostMessage(hWnd, WM_USER+100, 0,0);
+						rs.GetFieldValue((short)0,strDbVer);
+						db_col.AppendFormat(_T("%s "),strDbVer);
+						rs.MoveNext();
 					}
-				}
+					rs.Close();
+					int nTokenPos = 0;
+					CString strToken = line.Tokenize(_T(","), nTokenPos);
+					while (!strToken.IsEmpty())
+					{
+						if(db_col.Find(strToken)>=0)
+						{
+							columns.AppendFormat(_T("`%s`,"),strToken);
+						}
+						else
+						{
+							columns.AppendFormat(_T("@%s,"),strToken);
+						}
+						strToken = line.Tokenize(_T(","), nTokenPos);
+					}
+					columns.Delete(columns.GetLength()-1);
+					try{
+						strSQL.Format(_T("TRUNCATE TABLE %s"),fileName);
+						db.ExecuteSQL(strSQL);
+						strSQL.Format(_T("LOAD DATA LOCAL INFILE '%s' REPLACE INTO TABLE %s FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\\n' IGNORE 1 LINES (%s)"),fullPath,fileName,columns);
+						db.ExecuteSQL(strSQL);
+						if(!bNeedRestart&&progress)
+						{
+							int nPos=strRestart.Find(fileName);
+							if(nPos>=0)
+								bNeedRestart=TRUE;
+						}
+						if(fileName.Compare(_T("print_templates"))==0)
+						{
+							//通知打印服务重新加载
+							HWND hWnd=::FindWindow(_T("CPrintServerDlg"),_T("AgilePrintServer"));
+							if(hWnd)
+							{
+								::PostMessage(hWnd, WM_USER+100, 0,0);
+							}
+						}
+					}catch(CDBException* ex)
+					{
+						POSMessageBox(ex->m_strError);
+					}
 				}catch(...)
 				{
 
@@ -893,7 +897,14 @@ int CLoginDlg::DoDownload(ProgressDlg* progress)
 		}
 		pFile->Close();
 		db.Close();	
-	}catch(...)
+	}catch (CInternetException* pEx)
+	{
+		TCHAR szErr[1024];
+		pEx->GetErrorMessage(szErr, 1024);
+		POSMessageBox(szErr);
+		nCode=-3;
+	}
+	catch(...)
 	{
 		nCode=-3;
 	}

@@ -39,6 +39,7 @@
 #endif
 
 #define WEB_VERSION
+#define LATEST_DB_VERSION _T("20170301")
 
 // CPOSClientApp
 
@@ -455,7 +456,7 @@ BOOL CPOSClientApp::InitInstance()
 		{
 			CString strKey;
 			rs.GetFieldValue(_T("db_version"),strKey);
-			if(strKey.Compare(_T("20161210"))<0)
+			if(strKey.Compare(LATEST_DB_VERSION)<0)
 			{
 				POSMessageBox(IDS_DATABASE_LOWER);
 			}
@@ -548,7 +549,10 @@ BOOL CPOSClientApp::InitInstance()
 		rs.Close();
 	}
 	}catch(...)
-	{}
+	{
+		m_bNotReg=TRUE;
+		POSMessageBox(IDS_NOTREG);
+	}
 	if(reg_pos>0)
 	{//¼ì²é×¢²áÊý
 		strSQL.Format(_T("SELECT COUNT(*) FROM user_workstations WHERE opos_device_name IS NOT NULL"));

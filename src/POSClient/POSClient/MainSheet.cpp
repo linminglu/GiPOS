@@ -160,6 +160,7 @@ BOOL CMainSheet::OnInitDialog()
 		LONG style = ::GetWindowLong(this->m_hWnd,GWL_STYLE);
 		style &= ~(WS_DLGFRAME | WS_THICKFRAME);
 		SetWindowLong(this->m_hWnd,GWL_STYLE, style);
+		::SetWindowPos(this->m_hWnd, HWND_TOPMOST, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
 		this->ShowWindow(SW_SHOWMAXIMIZED);
 	}
 	else
