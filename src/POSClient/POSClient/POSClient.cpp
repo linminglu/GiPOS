@@ -38,7 +38,6 @@
 #define new DEBUG_NEW
 #endif
 
-#define WEB_VERSION
 #define LATEST_DB_VERSION _T("20170301")
 
 // CPOSClientApp

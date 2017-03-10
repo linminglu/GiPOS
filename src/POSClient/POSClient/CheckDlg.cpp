@@ -736,6 +736,7 @@ double CCheckDlg::GetSubtotalToDiscount()
 round_type：1- 小数抹零； 2- 个位抹零； 3- 十位抹零 ；4- 二舍八入、三七作五
 * 输出参数： 
 * 返回值  ：抹零抹掉的差额
+* 负数的抹零参考：https://en.wikipedia.org/wiki/Rounding#Tie-breaking
 ************************************************************************/
 double CCheckDlg::Round(double total,int round_type)
 {
@@ -774,22 +775,31 @@ double CCheckDlg::Round(double total,int round_type)
 		break;
 	case 5://个位四舍五入
 		{
-			int end=(int)total%10;
-			int ten=total/10;
-			if(end<=4){
-				end=0;
-			}
-			else{
-				end=10;
-			}
-			round_total=ten*10+end;
+			if(bNegtive)
+				round_total=ceil(total/10-0.5);
+			else
+				round_total=int(total/10+0.5);
+			round_total=round_total*10;
 		}
 		break;
 	case 6://小数位四舍五入
-		round_total=int(total+0.5);
+		if(bNegtive)
+			round_total=ceil(total-0.5);
+		else
+			round_total=int(total+0.5);
 		break;
 	case 7://分位四舍五入
-		round_total=int(total*10+0.5);
+		if(bNegtive)
+		{
+			double d=total*10-0.5;
+			double decimal=d-(int)d;
+			if(decimal<0.00000001)//double 精度问题，特殊处理
+				round_total=(int)d;
+			else
+				round_total=ceil(d);
+		}
+		else
+			round_total=int(total*10+0.5);
 		round_total=round_total/10;
 		break;
 	case 8://分位二舍八入、三七作五

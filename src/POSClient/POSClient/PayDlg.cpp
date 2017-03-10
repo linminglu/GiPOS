@@ -1019,6 +1019,8 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 				return;//刷卡失败或超时
 			}
 		}
+		//PAX接口
+
 		//打开钱箱
 		variant.m_boolVal=FALSE;
 		rs.GetFieldValue(_T("open_drawer"),variant);
@@ -1103,7 +1105,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 		payinfo->total_price=actualPaid;
 		wcsncpy_s(payinfo->item_name,tender_media_name,63);
 		m_pOrderList->AddTail(payinfo);
-		m_checkDlg[active].AddOrderItem(payinfo);
+		m_checkDlg[active].AddOrderItem(payinfo,FALSE);
 		if(theApp.m_VCR.IsOpen())
 		{
 			CString strLine;

@@ -435,6 +435,7 @@ void ShiftDlg::GetShiftInfoByPos()
 								CString name=jItem[_T("payment")].asCString();
 								m_strMsg.Append(CReportDlg::FormatString(name,18,FALSE));
 								m_strMsg.Append(CReportDlg::FormatString(jItem[_T("ori_amount")].asDouble(),8));
+								m_strMsg.Append(CReportDlg::FormatString(jItem[_T("count")].asInt(),4));
 								m_strMsg.Append(_T("\r\n"));
 							}
 						}

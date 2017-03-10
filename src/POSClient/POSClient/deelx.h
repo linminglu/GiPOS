@@ -10,7 +10,7 @@
 // Author:  ∑ ŸŒ∞ (sswater shi)
 // sswater@gmail.com
 //
-// $Revision: 863 $
+// $Revision: 864 $
 //
 
 #ifndef __DEELX_REGEXP__H__
@@ -3638,6 +3638,7 @@ template <class CHART> CContext * CRegexpT <CHART> :: PrepareMatch(const CHART *
 	pContext->m_nLastBeginPos = -1;
 	pContext->m_pMatchString  = (void*)tstring;
 	pContext->m_pMatchStringLength = length;
+	pContext->m_nCursiveLimit = 100;
 
 	if(start < 0)
 	{

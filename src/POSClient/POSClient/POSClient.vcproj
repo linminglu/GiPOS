@@ -22,6 +22,7 @@
 			ConfigurationType="1"
 			UseOfMFC="2"
 			CharacterSet="1"
+			ManagedExtensions="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -46,8 +47,8 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="zip"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;EN_VERSION"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
+				MinimalRebuild="false"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
@@ -70,6 +71,7 @@
 				Name="VCLinkerTool"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
+				AssemblyDebug="1"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -473,7 +475,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions=" /D &quot;FREE_VERSION&quot;"
 				AdditionalIncludeDirectories="zip"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;GICATER_VERSION"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;WEB_VERSION"
 				MinimalRebuild="false"
 				ExceptionHandling="2"
 				RuntimeLibrary="2"

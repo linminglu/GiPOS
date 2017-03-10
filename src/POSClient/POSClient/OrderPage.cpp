@@ -1083,7 +1083,7 @@ void COrderPage::UpdateSoldoutInfo(OrderDetail* item,double diff)
 	CString strSQL;
 	if (item->bargain_stype==2&&item->quantity>0)
 	{
-		strSQL.Format(_T("UPDATE bargain_price_item SET bargain_num_cur=bargain_num_cur %+f WHERE bargain_item_number=%d AND bargain_stype=2;")
+		strSQL.Format(_T("UPDATE bargain_price_item SET bargain_num_cur=bargain_num_cur+%f WHERE bargain_item_number=%d AND bargain_stype=2")
 			,diff,item->item_id);
 		theDB.ExecuteSQL(strSQL);
 	}

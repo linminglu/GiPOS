@@ -67,7 +67,7 @@ public:
 	CRoundButton2* m_CheckedClassButton;
 
 	int m_nCurrentClass;//保存当前菜品的分类
-	static int m_nQuantity;
+	static double m_nQuantity;
 	static int m_nSeat;
 
 	static int m_nChkNum;//单号
