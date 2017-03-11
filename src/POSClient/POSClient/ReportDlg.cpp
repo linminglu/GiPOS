@@ -344,8 +344,7 @@ void CReportDlg::ShowReport1(BOOL bSms)
 	}
 	rs.Close();
 
-	strSQL.Format(_T("select round(sum(actual_price),2) from history_order_detail,history_order_head where menu_item_id=-6 AND is_return_item=0 ")
-		_T("AND history_order_detail.order_head_id=history_order_head.order_head_id AND history_order_detail.check_id=history_order_head.check_id AND order_end_time>=\'%s\' AND order_end_time<=\'%s\'")
+	strSQL.Format(_T("select round(sum(tips_amount),2) from history_order_head where order_end_time>=\'%s\' AND order_end_time<=\'%s\'")
 		,m_strStartDate,m_strEndDate);
 	rs.Open( CRecordset::forwardOnly,strSQL);
 	if (!rs.IsEOF())
@@ -536,10 +535,12 @@ void CReportDlg::ShowReport1(BOOL bSms)
 			rs.Close();
 		}
 	}
-
+	//支付方式
 	theLang.LoadString(str2,IDS_PAMENTOV);
 	m_strResult.Append(str2);
-	strSQL.Format(_T("{CALL c_pay_style(\'%s\',\'%s\',0,99)}"),m_strStartDate,m_strEndDate);
+	strSQL.Format(_T("select tender_media_name,round(sum(total),2) as total,COUNT(*) from payment,tender_media WHERE")
+		_T(" payment_time>='%s' AND payment_time<'%s' AND payment.tender_media_id=tender_media.tender_media_id")
+		_T(" GROUP BY payment.tender_media_id"),m_strStartDate,m_strEndDate);
 	rs.Open( CRecordset::forwardOnly,strSQL);
 	while (!rs.IsEOF())
 	{
@@ -553,6 +554,28 @@ void CReportDlg::ShowReport1(BOOL bSms)
 		rs.MoveNext();
 	}
 	rs.Close();
+#ifdef EN_VERSION
+	//小费分类汇总
+	CString strTip;
+	theLang.LoadString(str2,IDS_TIPS);
+	strTip.Format(_T("\r\n  <<  %s >>\r\n"),str2);
+	m_strResult.Append(strTip);
+	strSQL.Format(_T("SELECT tender_media_name,SUM(actual_price) FROM history_order_detail,tender_media")
+		_T(" WHERE menu_item_id=-6 AND discount_id=tender_media_id GROUP BY discount_id"));
+	rs.Open( CRecordset::forwardOnly,strSQL);
+	while (!rs.IsEOF())
+	{
+		rs.GetFieldValue((short)0,str2);
+		rs.GetFieldValue((short)1,strVal);
+		fvalue=_wtof(strVal);
+		str2.Append(_T(":"));
+		m_strResult.Append(FormatString(str2,20,bSms));
+		m_strResult.Append(FormatString(fvalue,7));
+		m_strResult.Append(_T("\r\n"));
+		rs.MoveNext();
+	}
+	rs.Close();
+#endif
 	//会员充值
 	if(macrosInt[_T("QUERY_MEMBER_REPORT")]==1)
 	{

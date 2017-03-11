@@ -726,7 +726,8 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 		}
 		if(IsRegLimit())
 			return;
-		LOG4CPLUS_INFO(log_pos,"PayDlg::OnBnClickedPayment uID="<<uID-IDC_SLU_BUTTON);
+		int payment_id=uID-IDC_SLU_BUTTON;
+		LOG4CPLUS_INFO(log_pos,"PayDlg::OnBnClickedPayment uID="<<payment_id);
 		OpenDatabase();
 		CRecordset rs( &theDB);
 		CString strSQL,str2;
@@ -756,7 +757,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 				return;
 		}
 
-		strSQL.Format(_T("SELECT * FROM tender_media WHERE tender_media_id=%d"),uID-IDC_SLU_BUTTON);
+		strSQL.Format(_T("SELECT * FROM tender_media WHERE tender_media_id=%d"),payment_id);
 		rs.Open(CRecordset::forwardOnly,strSQL);
 		if (rs.IsEOF())//未配置付款方式
 			return;
@@ -1050,9 +1051,8 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 		{
 			if(bAddTips)
 			{//收取小费
-				
 				if(bPaidfull)
-				{//现金找零，手动输入小费.
+				{//现金找零，手动输入小费. 
 					TipsAddDlg tipDlg;
 					tipDlg.m_fTotal=m_checkDlg[active].m_fDebt;
 					tipDlg.m_fPayed=fPayed;
@@ -1061,6 +1061,17 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 					//重新计算找零
 					fChange=tipDlg.m_fChange;
 					fTips=tipDlg.m_fTips;
+
+					OrderDetail* tipsinfo=new OrderDetail;
+					memset(tipsinfo,0,sizeof(OrderDetail));
+					tipsinfo->item_id=ITEM_ID_TIPS;
+					tipsinfo->n_checkID=active+1;
+					tipsinfo->n_discount_type=payment_id;
+					wcsncpy_s(tipsinfo->item_name,_T("Tips"),63);
+					tipsinfo->total_price=fTips;
+					tipsinfo->item_price=fTips;
+					m_pOrderList->AddTail(tipsinfo);
+
 					if(fChange>=0.01)
 					{
 						CString str2;
@@ -1078,6 +1089,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 					memset(tipsinfo,0,sizeof(OrderDetail));
 					tipsinfo->item_id=ITEM_ID_TIPS;
 					tipsinfo->n_checkID=active+1;
+					tipsinfo->n_discount_type=payment_id;
 					wcsncpy_s(tipsinfo->item_name,_T("Tips"),63);
 					tipsinfo->total_price=fChange;
 					tipsinfo->item_price=fChange;
@@ -1152,7 +1164,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 				strSQL.Format(_T("INSERT INTO payment(order_head_id,check_id,tender_media_id,total,employee_id,remark")
 					_T(",payment_time,pos_device_id,rvc_center_id,order_detail_id,consume_id,ticket_id,wechat_id)")
 					_T(" VALUES (\'%d\',\'%d\',\'%d\',\'%0.2f\',\'%s\',\'%s\',NOW(),\'%d\',%d,%d,%d,%d,\'%s\');"),
-					pApp->m_nOrderHeadid,active+1,uID-IDC_SLU_BUTTON,fPayed,pApp->m_strUserID,
+					pApp->m_nOrderHeadid,active+1,payment_id,fPayed,pApp->m_strUserID,
 					strReamrk,pApp->m_nDeviceId,pApp->m_nRVC,payinfo->order_id,consume_id,ticket_id,wechat_id);
 			}
 			else
@@ -1160,7 +1172,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 				strSQL.Format(_T("INSERT INTO payment(order_head_id,check_id,tender_media_id,total,employee_id,remark")
 					_T(",payment_time,pos_device_id,rvc_center_id,order_detail_id,consume_id,ticket_id)")
 					_T(" VALUES (\'%d\',\'%d\',\'%d\',\'%0.2f\',\'%s\',\'%s\',\'%s\',\'%d\',%d,%d,%d,%d);"),
-					pApp->m_nOrderHeadid,active+1,uID-IDC_SLU_BUTTON,fPayed,pApp->m_strUserID,strReamrk,
+					pApp->m_nOrderHeadid,active+1,payment_id,fPayed,pApp->m_strUserID,strReamrk,
 					theApp.m_strEndTime,pApp->m_nDeviceId,pApp->m_nRVC,payinfo->order_id,consume_id,ticket_id);
 			}
 			theDB.ExecuteSQL(strSQL);

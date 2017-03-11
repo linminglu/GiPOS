@@ -346,7 +346,9 @@ void ShiftDlg::GetShiftInfoByPos()
 		GetDlgItem(IDC_STATIC2)->SetWindowText(str_from);
 		//Ö§¸¶·½Ê½
 		JSONVALUE arrayItems(JSONTYPE::JT_ARRAY);
-		strSQL.Format(_T("{CALL c_pay_style(\'%s\',\'%s\',%d,%d)}"),str_from,str_to,pApp->m_nDeviceId,pApp->m_nDeviceId);
+		strSQL.Format(_T("select tender_media_name,round(sum(total),2) as total,COUNT(*) from payment,tender_media WHERE")
+			_T(" payment_time>='%s' AND payment_time<'%s' AND pos_device_id=%d AND payment.tender_media_id=tender_media.tender_media_id")
+			_T(" GROUP BY payment.tender_media_id"),str_from,str_to,pApp->m_nDeviceId);
 		rs.Open(CRecordset::forwardOnly,strSQL);
 		double total=0;
 		while(!rs.IsEOF())
@@ -355,15 +357,28 @@ void ShiftDlg::GetShiftInfoByPos()
 			rs.GetFieldValue(1,strVal);
 			double fvalue=_wtof(strVal);
 			total+=fvalue;
+			rs.GetFieldValue(2,strVal);
+			int ivalue=_ttoi(strVal);
 			if(fvalue>0)
 			{
 				JSONVALUE item;
 				item[_T("k")]=str2;
 				item[_T("v")]=fvalue;
+				item[_T("c")]=ivalue;
 				arrayItems.Push(item);
 			}
-			m_strMsg.Append(CReportDlg::FormatString(str2,18,FALSE));
-			m_strMsg.Append(CReportDlg::FormatString(fvalue,8));
+			if(CReportDlg::GetPrintLength(str2)<9)
+			{
+				m_strMsg.Append(CReportDlg::FormatString(str2,9,FALSE));
+				m_strMsg.Append(CReportDlg::FormatString(fvalue,9));
+				m_strMsg.Append(CReportDlg::FormatString(ivalue,8));
+			}
+			else
+			{
+				m_strMsg.AppendFormat(_T("%s\r\n"),str2);
+				m_strMsg.Append(CReportDlg::FormatString(fvalue,18));
+				m_strMsg.Append(CReportDlg::FormatString(ivalue,8));
+			}
 			m_strMsg.Append(_T("\r\n"));
 			rs.MoveNext();
 		}
@@ -433,9 +448,19 @@ void ShiftDlg::GetShiftInfoByPos()
 								JSONVALUE jItem;
 								arrayItems.At(j,jItem);
 								CString name=jItem[_T("payment")].asCString();
-								m_strMsg.Append(CReportDlg::FormatString(name,18,FALSE));
-								m_strMsg.Append(CReportDlg::FormatString(jItem[_T("ori_amount")].asDouble(),8));
-								m_strMsg.Append(CReportDlg::FormatString(jItem[_T("count")].asInt(),4));
+								if(CReportDlg::GetPrintLength(name)<9)
+								{
+									m_strMsg.Append(CReportDlg::FormatString(name,9,FALSE));
+									m_strMsg.Append(CReportDlg::FormatString(jItem[_T("ori_amount")].asDouble(),9));
+									m_strMsg.Append(CReportDlg::FormatString(jItem[_T("count")].asInt(),8));
+								}
+								else
+								{
+									m_strMsg.AppendFormat(_T("%s\r\n"),name);
+									m_strMsg.Append(CReportDlg::FormatString(jItem[_T("ori_amount")].asDouble(),18));
+									m_strMsg.Append(CReportDlg::FormatString(jItem[_T("count")].asInt(),8));
+								}
+								
 								m_strMsg.Append(_T("\r\n"));
 							}
 						}
