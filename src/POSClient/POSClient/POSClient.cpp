@@ -288,9 +288,34 @@ int ScaleY(int pt)
 // CPOSClientApp 初始化
 CSplashWnd splash;
 //typedef int (__stdcall *PaxPayRequest)(LPCWSTR refNum,double amount);
-typedef LPCWSTR (*PaxPayRequest)(int& result,LPCWSTR refNum,double amount);
-PaxPayRequest payRequest;
+typedef LPCWSTR (*__PaxPayRequest)(int& result,LPCWSTR refNum,double amount);
+__PaxPayRequest payRequest=NULL;
 
+typedef void (*__CreateComm)();
+typedef bool (*__openport)(LPCSTR iCom, int iBaud);
+typedef char* (*__GetWeight)();
+__GetWeight getWeight=NULL;
+
+double CPOSClientApp::GetWeight()
+{
+	USES_CONVERSION;
+	if(getWeight==NULL)
+		return 0;
+	char* strWeight=getWeight();//格式为 0,575KG
+	CStringA str=strWeight;
+	if(m_nScaleType==1)
+	{
+		str=str.Left(str.GetLength()-2);
+		str.Replace(',','.');
+	}
+	else if(m_nScaleType==2)
+	{
+		int start=str.Find(',',2)+1;
+		int end=str.Find(',',start);
+		str=str.Mid(start,end-start);
+	}
+	return atof(str);
+}
 BOOL CPOSClientApp::InitInstance()
 {
 	// 如果一个运行在 Windows XP 上的应用程序清单指定要
@@ -358,6 +383,9 @@ BOOL CPOSClientApp::InitInstance()
 	LOG4CPLUS_INFO(log_pos,"***********************Agile POS Start**************************");
 	m_strVersion=_T("V")+GetFileVersion(cPath);
 	m_strVersion.Replace(',','.');
+#ifdef WEB_VERSION
+	m_strVersion+=_T(" Web");
+#endif
 	LOG4CPLUS_INFO(log_pos,"File version: "<<(LPCTSTR)m_strVersion);
 	DEFALUT_BACKGROUND_COLOR=::GetPrivateProfileInt(_T("POS"),_T("BACKGRD_COLOR"),0,_T(".\\config.ini"));
 	if(DEFALUT_BACKGROUND_COLOR==0)
@@ -511,12 +539,55 @@ BOOL CPOSClientApp::InitInstance()
 	rs.Close();
 	splash.SetProgress( 60, IDS_CHECKREG);
 	
-	
-	HINSTANCE hDll = ::LoadLibraryEx(_T("PaxWrap.dll"),NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
-	if (hDll)
+	//加载信用卡接口
+	HINSTANCE paxDll = ::LoadLibraryEx(_T("PaxWrap.dll"),NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+	if (paxDll)
 	{
-		payRequest=(PaxPayRequest)GetProcAddress(hDll,"PaxPayRequest");
+		payRequest=(__PaxPayRequest)GetProcAddress(paxDll,"PaxPayRequest");
 	}
+	//加载电子秤接口
+	m_nScaleType=::GetPrivateProfileInt(_T("SCALES"),_T("TYPE"),0,_T(".\\config.ini"));
+	if(m_nScaleType==1)
+	{
+		HINSTANCE ps1Dll = ::LoadLibraryEx(_T("PS1DLL.dll"),NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+		if (ps1Dll)
+		{
+			int com=::GetPrivateProfileInt(_T("SCALES"),_T("COM"),0,_T(".\\config.ini"));
+			int rate=::GetPrivateProfileInt(_T("SCALES"),_T("BAUDRATE"),9600,_T(".\\config.ini"));
+			CStringA strPort;
+			strPort.Format("com%d",com);
+			__CreateComm createComm=(__CreateComm)GetProcAddress(ps1Dll,"CreateComm");
+			createComm();
+			__openport openPort=(__openport)GetProcAddress(ps1Dll,"openport");
+			bool bRet=openPort((LPCSTR)strPort,rate);
+			if(bRet)
+			{
+				getWeight=(__GetWeight)GetProcAddress(ps1Dll,"GetWeight");
+			}
+			if(getWeight==NULL)
+				m_nScaleType=0;//加载失败
+		}
+	}
+	else if(m_nScaleType==2)
+	{
+		HINSTANCE os2Dll = ::LoadLibraryEx(_T("SensorDll.dll"),NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+		if (os2Dll)
+		{
+			int com=::GetPrivateProfileInt(_T("SCALES"),_T("COM"),0,_T(".\\config.ini"));
+			int rate=::GetPrivateProfileInt(_T("SCALES"),_T("BAUDRATE"),9600,_T(".\\config.ini"));
+			CStringA strPort;
+			strPort.Format("com%d",com);
+			__openport openPort=(__openport)GetProcAddress(os2Dll,"__Open");
+			bool bRet=openPort((LPCSTR)strPort,rate);
+			if(bRet)
+			{
+				getWeight=(__GetWeight)GetProcAddress(os2Dll,"__GetWeight");
+			}
+			if(getWeight==NULL)
+				m_nScaleType=0;//加载失败
+		}
+	}
+	
 //验证是否注册
 #if defined(WEB_VERSION)
 	int reg_pos=0;

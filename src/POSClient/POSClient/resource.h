@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by POSClient.rc
 //
+#define VS_VERSION_INFO1                2
 #define IDCANCEL2                       3
 #define IDC_CLOCKOUT                    3
 #define IDC_CLOCKIN                     4

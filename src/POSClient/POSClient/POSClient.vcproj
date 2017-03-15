@@ -476,7 +476,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions=" /D &quot;FREE_VERSION&quot;"
 				AdditionalIncludeDirectories="zip"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;WEB_VERSION"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;WEB_VERSION;GICATER_VERSION"
 				MinimalRebuild="false"
 				ExceptionHandling="2"
 				RuntimeLibrary="2"

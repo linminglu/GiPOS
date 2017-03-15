@@ -203,6 +203,7 @@ public:
 	int m_nDeviceId;//设备号
 	int m_isCusFloor;//登录后显示的第一个页面
 	int m_nLimitType;//1：整桌最低消费 2：人均最低消费
+	int m_nScaleType;//0: 不使用 1- PS1电子秤 2- OS2电子秤
 	long m_nPartyId;//宴会分组ID
 	double m_fLimitAmount;//最低消费金额
 	double m_fMemberDiscount;//会员价优惠金额 
@@ -245,6 +246,7 @@ private:
 // 重写
 	public:
 	virtual BOOL InitInstance();
+	double GetWeight();
 	BOOL CheckInit();
 	int GetDeviceID();
 	BOOL InitPrinter();

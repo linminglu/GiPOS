@@ -538,8 +538,7 @@ void ViewCheckDlg::OnBnClickedButtonTips()
 			return;
 		amount=_wtof(dlg.m_strNum);
 		//更新数据库
-		strSQL.Format(_T("UPDATE history_order_head SET tips_amount=%0.2f WHERE order_head_id=%d AND check_id=%d")
-			,amount,m_nOrderHeadid,m_nActive);
+		strSQL.Format(_T("UPDATE history_order_head SET tips_amount=%0.2f WHERE order_head_id=%d AND check_id=%d"),amount,m_nOrderHeadid,m_nActive);
 		theDB.ExecuteSQL(strSQL);
 	}
 	catch(CDBException* e)

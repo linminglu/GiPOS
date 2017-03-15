@@ -35,8 +35,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-typedef LPCWSTR (*PaxPayRequest)(int& result,LPCWSTR refNum,double amount);
-extern PaxPayRequest payRequest;
+typedef LPCWSTR (*__PaxPayRequest)(int& result,LPCWSTR refNum,double amount);
+extern __PaxPayRequest payRequest;
 //typedef const char* (__stdcall *payfunc)(const char* cmd);
 //extern HINSTANCE hSQBDll;//ÊÕÇ®°É½Ó¿Ú
 
