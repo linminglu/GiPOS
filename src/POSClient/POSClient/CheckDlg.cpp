@@ -371,7 +371,7 @@ int CCheckDlg::AddOrderItem(OrderDetail* order,BOOL bUpdate,int insertIndex)
 			m_bDiscountChange=TRUE;
 		}
 	}
-	else if(order->item_id>0)
+	else if(order->item_id>0||order->item_id==ITEM_ID_TIPS)
 	{//菜品
 		m_fSubtotal+=order->total_price;
 	}
@@ -610,6 +610,10 @@ void CCheckDlg::ComputeSubtotal()
 				taxDiscount+=pTmpOder->total_price;
 			}
 		}
+		else if(pTmpOder->item_id==ITEM_ID_TIPS)
+		{//小费
+			m_fSubtotal+=pTmpOder->total_price;
+		}
 		else if(pTmpOder->item_id>0)
 		{//普通菜品
 			m_fSubtotal+=pTmpOder->total_price;
@@ -640,6 +644,7 @@ void CCheckDlg::ComputeSubtotal()
 					pTax->total+=pTmpOder->tax_amount;
 			}
 		}
+		
 		
 	}
 	m_bDiscountChange=FALSE;

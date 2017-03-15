@@ -35,9 +35,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-
-typedef const char* (__stdcall *payfunc)(const char* cmd);
-extern HINSTANCE hSQBDll;//收钱吧接口
+typedef LPCWSTR (*PaxPayRequest)(int& result,LPCWSTR refNum,double amount);
+extern PaxPayRequest payRequest;
+//typedef const char* (__stdcall *payfunc)(const char* cmd);
+//extern HINSTANCE hSQBDll;//收钱吧接口
 
 IMPLEMENT_DYNAMIC(PayDlg, COrderPage)
 
@@ -73,7 +74,7 @@ BEGIN_MESSAGE_MAP(PayDlg, CDialog)
 	//ON_BN_CLICKED(IDC_BUTTON_SAVE, &PayDlg::OnBnClickedSaveOrder)
 	ON_BN_CLICKED(IDC_BUTTON_PRE, &PayDlg::OnBnClickedPrepage)
 	//	ON_BN_CLICKED(IDC_BUTTON_CASH, &PayDlg::OnBnClickedCash)
-	ON_COMMAND_RANGE(IDC_SLU_BUTTON,IDC_SLU_BUTTON+20,OnBnClickedPayment)
+	ON_COMMAND_RANGE(IDC_SLU_BUTTON,IDC_SLU_BUTTON+99,OnBnClickedPayment)
 	ON_BN_CLICKED(IDC_BUTTON_UP, &PayDlg::OnBnClickedButtonUp)
 	ON_BN_CLICKED(IDC_BUTTON_DOWN, &PayDlg::OnBnClickedButtonDown)
 	ON_BN_CLICKED(IDC_BUTTON_OK, &PayDlg::OnBnClickedOK)
@@ -222,6 +223,11 @@ BOOL PayDlg::OnInitDialog()
 					while(!rs.IsEOF())
 					{
 						rs.GetFieldValue(_T("tender_media_id"),variant);
+						if(variant.m_iVal>99)
+						{//支付方式id不能超过99
+							rs.MoveNext();
+							continue;
+						}
 						rs.GetFieldValue(_T("tender_media_name"),strName);
 						rs.MoveNext();
 						int line_x=pIndex%LINE_SIZE;
@@ -746,6 +752,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 		payinfo->n_checkID=active+1;
 		CString tender_media_name;
 		CString strchange=L"";
+		LPCTSTR strPaxMsg=NULL;//PAX信用卡交易返回信息
 		if(CheckCosumeLimit()==FALSE)
 			return;
 		//客显提示顾客
@@ -929,6 +936,21 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 				fPayed=m_checkDlg[active].m_fDebt;
 				break;
 			}
+		case 10:
+			{// PAX 信用卡接口
+				if(payRequest)
+				{
+					CString refNum;
+					int ret=-1;
+					refNum.Format(_T("%09d-%d"),theApp.m_nOrderHeadid,active+1);
+					strPaxMsg=(*payRequest)(ret,(LPCTSTR)refNum,m_checkDlg[active].m_fDebt);
+					if(ret!=0)
+					{
+						POSMessageBox(strPaxMsg);
+						return;
+					}
+				}
+			}
 	//收钱吧(微信/支付宝)
 // 			{
 // 				if (theApp.m_bQuickService&&theApp.m_nOrderHeadid==0)
@@ -1080,7 +1102,7 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 						UpdateNumber(strchange);
 						pApp->m_cusDisplay.Display(fChange,4);
 					}
-					fPayed=m_checkDlg[active].m_fDebt;
+					fPayed=m_checkDlg[active].m_fDebt+fTips;
 					payinfo->item_price =fChange;
 				}
 				else
@@ -1223,12 +1245,14 @@ void PayDlg::OnBnClickedPayment(UINT uID)
 				{
 					CString cvalue;
 					rs.GetFieldValue((short)0,cvalue);
-					root["invoice"]=_wtof(cvalue);
+					root[_T("invoice")]=_wtof(cvalue);
 				}
 				rs.Close();
-				root["print_count"]=nPrint;
+				root[_T("print_count")]=nPrint;
 				FormatPrint(root,theApp.m_payPrinter,m_checkDlg[active],active);
-				root["chk_total"]=(double)m_checkDlg[active].m_fPayed;
+				root[_T("chk_total")]=(double)m_checkDlg[active].m_fPayed;
+				if(strPaxMsg!=NULL)
+					root[_T("credit")]=strPaxMsg;
 				if(macrosInt[_T("PRINTCHK_TWICE")]==2)
 				{
 					if(POSMessageBox(IDS_IFPRINTCHK,MB_YESNO)==IDOK)

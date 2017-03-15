@@ -108,10 +108,10 @@ BEGIN
     BEGIN
         BLOCK "080403a8"
         BEGIN
-            VALUE "CompanyName", "Shenzhen Coolroid Technology Co. Ltd"
+            VALUE "CompanyName", "PUD POS"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "ServerIpSetting.exe"
-            VALUE "LegalCopyright", "(c) 2013 COOLROID All Rights Reserved"
+            VALUE "LegalCopyright", "(C) All Rights Reserved"
             VALUE "OriginalFilename", "ServerIpSetting.exe"
             VALUE "ProductVersion", "1.0.0.1"
         END

@@ -70,6 +70,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="E:\Git\POSClient\src\POSClient\debug"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				SubSystem="2"
@@ -533,6 +534,10 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{8386ADCB-8655-4237-9FD0-59BA15458B63}"
+			RelativePathToProject=".\PaxWrap\PaxWrap.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter
@@ -1545,6 +1550,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\PaxWrap\PaxWrap.vcproj"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

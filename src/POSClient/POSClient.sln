@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "POSClient", "POSClient\POSC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerIpSetting", "ServerIpSetting\ServerIpSetting.vcproj", "{748009EC-203D-4A3D-A657-4160CD71022A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PaxWrap", "PaxWrap\PaxWrap.vcproj", "{8386ADCB-8655-4237-9FD0-59BA15458B63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -39,6 +41,18 @@ Global
 		{748009EC-203D-4A3D-A657-4160CD71022A}.Release|Win32.Build.0 = Release|Win32
 		{748009EC-203D-4A3D-A657-4160CD71022A}.Web_Release|Win32.ActiveCfg = Release|Win32
 		{748009EC-203D-4A3D-A657-4160CD71022A}.Web_Release|Win32.Build.0 = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Debug|Win32.Build.0 = Debug|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.EN_Release|Win32.ActiveCfg = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.EN_Release|Win32.Build.0 = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Free_Debug|Win32.ActiveCfg = Debug|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Free_Debug|Win32.Build.0 = Debug|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Free_Release|Win32.ActiveCfg = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Free_Release|Win32.Build.0 = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Release|Win32.ActiveCfg = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Release|Win32.Build.0 = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Web_Release|Win32.ActiveCfg = Release|Win32
+		{8386ADCB-8655-4237-9FD0-59BA15458B63}.Web_Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

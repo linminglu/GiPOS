@@ -91,9 +91,10 @@ extern UINT LF_CHARSET;
 extern CString LF_FaceName;
 extern CString thePrintDir;
 BOOL CPOSClientApp::m_bQuickService=FALSE;
-HINSTANCE hSQBDll;//收钱吧接口
-typedef const char* (__stdcall *pfunc)(const char* cmd);
-typedef const char* (__stdcall *versionFunc)(void);
+//HINSTANCE hSQBDll;//收钱吧接口
+//typedef const char* (__stdcall *pfunc)(const char* cmd);
+//typedef const char* (__stdcall *versionFunc)(void);
+
 
 BOOL OpenDatabase(BOOL bRecounect)
 {
@@ -286,6 +287,9 @@ int ScaleY(int pt)
 } 
 // CPOSClientApp 初始化
 CSplashWnd splash;
+//typedef int (__stdcall *PaxPayRequest)(LPCWSTR refNum,double amount);
+typedef LPCWSTR (*PaxPayRequest)(int& result,LPCWSTR refNum,double amount);
+PaxPayRequest payRequest;
 
 BOOL CPOSClientApp::InitInstance()
 {
@@ -298,13 +302,13 @@ BOOL CPOSClientApp::InitInstance()
 	// 公共控件类。
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
-
+ 
 	CWinApp::InitInstance();
 	WNDCLASS wc;
 	::GetClassInfo(AfxGetInstanceHandle(),  _T("#32770"), &wc);
 	wc.lpszClassName = _T("CoolroidPOS");
 	AfxRegisterClass(&wc);
-
+	 				
 	int argc = 0;
 	LPWSTR *lpszArgv = NULL;
 	LPTSTR szCmdLine = GetCommandLine(); //获取命令行参数；
@@ -508,7 +512,11 @@ BOOL CPOSClientApp::InitInstance()
 	splash.SetProgress( 60, IDS_CHECKREG);
 	
 	
-
+	HINSTANCE hDll = ::LoadLibraryEx(_T("PaxWrap.dll"),NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+	if (hDll)
+	{
+		payRequest=(PaxPayRequest)GetProcAddress(hDll,"PaxPayRequest");
+	}
 //验证是否注册
 #if defined(WEB_VERSION)
 	int reg_pos=0;

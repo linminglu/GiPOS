@@ -368,11 +368,11 @@ void CReportDlg::ShowReport1(BOOL bSms)
 		m_strResult.Append(FormatString(fvalue,7));
 		m_strResult.Append(_T("\r\n"));
 
-		theLang.LoadString(str2,IDS_NETSALE);
-		str1.Format(_T("=%s:"),str2);
-		m_strResult.Append(FormatString(str1,20,bSms));
-		m_strResult.Append(FormatString(fTotalSale+fvalue,7));
-		m_strResult.Append(_T("\r\n"));
+// 		theLang.LoadString(str2,IDS_NETSALE);
+// 		str1.Format(_T("=%s:"),str2);
+// 		m_strResult.Append(FormatString(str1,20,bSms));
+// 		m_strResult.Append(FormatString(fTotalSale+fvalue,7));
+// 		m_strResult.Append(_T("\r\n"));
 
 		rs.GetFieldValue((short)1,strVal);
 		fvalue=_wtof(strVal);
