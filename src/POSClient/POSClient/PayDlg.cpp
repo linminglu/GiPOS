@@ -2290,6 +2290,11 @@ void PayDlg::OnBnClickedActualPayed()
 void PayDlg::OnBnClickedOK()
 {
 	try{
+		if (theApp.m_nOrderHeadid==0&&m_pOrderList->IsEmpty())
+		{
+			POSMessageBox(IDS_NOPAYMENT);
+			return;
+		}
 		LOG4CPLUS_INFO(log_pos,"PayDlg::OnBnClickedOK Begin");
 		CString msg,strSQL;
 		if (theApp.m_bQuickService&&theApp.m_nOrderHeadid==0)
