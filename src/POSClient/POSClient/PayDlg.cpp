@@ -642,6 +642,7 @@ BOOL PayDlg::CleanTable(BOOL bForce)
 	}
 	LOG4CPLUS_INFO(log_pos,"PayDlg::CleanTable close check "<<theApp.m_nOrderHeadid);
 	m_strTAInfo.Empty();
+	theApp.m_strEndTime.Empty();
 	if(bForce||theApp.m_bQuickService||theApp.m_bRefund||macrosInt[_T("NOT_CLEAN_TABLE")]==0)
 	{
 		strSQL.Format(_T("CALL cut_items(%d,%d);"),theApp.m_nOrderHeadid,theApp.m_nTableId);
