@@ -346,7 +346,7 @@ void ShiftDlg::GetShiftInfoByPos()
 		GetDlgItem(IDC_STATIC2)->SetWindowText(str_from);
 		//Ö§¸¶·½Ê½
 		JSONVALUE arrayItems(JSONTYPE::JT_ARRAY);
-		strSQL.Format(_T("select tender_media_name,round(sum(total),2) as total,COUNT(*) from payment,tender_media WHERE")
+		strSQL.Format(_T("select tender_media_name,round(sum(total),2) as total,COUNT(DISTINCT order_head_id,check_id) from payment,tender_media WHERE")
 			_T(" payment_time>='%s' AND payment_time<'%s' AND pos_device_id=%d AND payment.tender_media_id=tender_media.tender_media_id")
 			_T(" GROUP BY payment.tender_media_id"),str_from,str_to,pApp->m_nDeviceId);
 		rs.Open(CRecordset::forwardOnly,strSQL);

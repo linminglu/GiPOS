@@ -36,7 +36,8 @@ extern "C" _declspec(dllexport) LPCWSTR PaxPayRequest(int& result,LPCWSTR refNum
 	payRequest->TenderType = payRequest->ParseTenderType(gcnew String(L"CREDIT"));
 	payRequest->TransType = payRequest->ParseTransType(gcnew String(L"SALE"));
 	payRequest->ECRRefNum = gcnew String(refNum);
-	payRequest->Amount = String::Format("{0:0.00}", amount);
+	int total=amount*100;
+	payRequest->Amount = String::Format("{0}",total);
 	// 	if (wcslen(refNum)!=0) {
 	// 		payRequest->OrigRefNum = gcnew String(refNum);
 	// 	}

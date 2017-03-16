@@ -414,8 +414,10 @@ void ViewCheckDlg::OnLvnItemchangedList2(NMHDR *pNMHDR, LRESULT *pResult)
 		CTime time_close(nYear,   nMonth,   nDate,   nHour,   nMin,   nSec);
 		if(time_close>m_dayendTime){
 			m_btReopen.ShowWindow(SW_SHOW);
+			m_btTips.ShowWindow(SW_SHOW);
 		}else{
 			m_btReopen.ShowWindow(SW_HIDE);
+			m_btTips.ShowWindow(SW_HIDE);
 		}
 		try{
 			while(!m_orderList.IsEmpty())
@@ -516,30 +518,125 @@ void ViewCheckDlg::OnBnClickedButtonTips()
 		OpenDatabase();
 		CString strSQL;
 		NumberInputDlg dlg;
-		strSQL.Format(_T("SELECT tips_amount FROM history_order_head WHERE order_head_id=%d AND check_id=%d"),m_nOrderHeadid,m_nActive);
+		strSQL.Format(_T("SELECT tips_amount,order_end_time FROM history_order_head WHERE order_head_id=%d AND check_id=%d"),m_nOrderHeadid,m_nActive);
 		CRecordset rs( &theDB);
-		CString cvalue,str2;
+		CString ori_tips,str2;
+		CString end_time;
 		rs.Open( CRecordset::forwardOnly,strSQL);
 		if (!rs.IsEOF())
 		{
-			rs.GetFieldValue((short)0,cvalue);
+			rs.GetFieldValue(_T("tips_amount"),ori_tips);
+			rs.GetFieldValue(_T("order_end_time"),end_time);
 		}
 		rs.Close();
 		theLang.LoadString(dlg.m_strHint,IDS_TIPS);
-		if (!cvalue.IsEmpty())
+		if (!ori_tips.IsEmpty())
 		{
 			theLang.LoadString(str2,IDS_ORIGNALINVOICE);
-			dlg.m_strHint.AppendFormat(str2,cvalue);
+			dlg.m_strHint.AppendFormat(str2,ori_tips);
 		}
-		double amount;
+		double new_tips;
 		if(dlg.DoModal()!=IDOK)
 			return;
 		if (dlg.m_strNum.IsEmpty())
 			return;
-		amount=_wtof(dlg.m_strNum);
+		new_tips=_wtof(dlg.m_strNum);
+		double tips_diff=new_tips-_wtof(ori_tips);
 		//更新数据库
-		strSQL.Format(_T("UPDATE history_order_head SET tips_amount=%0.2f WHERE order_head_id=%d AND check_id=%d"),amount,m_nOrderHeadid,m_nActive);
+		strSQL.Format(_T("SELECT order_detail_id,discount_id FROM history_order_detail WHERE menu_item_id=-6 AND order_head_id=%d AND check_id=%d"),m_nOrderHeadid,m_nActive);
+		long detail_id=0;
+		int tender_id=0;
+		rs.Open( CRecordset::forwardOnly,strSQL);
+		if (!rs.IsEOF())
+		{
+			CDBVariant var;
+			rs.GetFieldValue(_T("order_detail_id"),var);
+			detail_id=var.m_lVal;
+			rs.GetFieldValue(_T("discount_id"),var);
+			tender_id=var.m_iVal;
+		}
+		rs.Close();
+		if(detail_id<=0)
+		{//没有小费记录
+			OrderDetail* tipsinfo=new OrderDetail;
+			memset(tipsinfo,0,sizeof(OrderDetail));
+			tipsinfo->item_id=ITEM_ID_TIPS;
+			tipsinfo->n_checkID=m_nActive;
+			tipsinfo->n_discount_type=1;
+			wcsncpy_s(tipsinfo->item_name,_T("Tips"),63);
+			tipsinfo->total_price=new_tips;
+			tipsinfo->item_price=new_tips;
+			COrder_Detail rsDetail(&theDB);
+			rsDetail.Open(CRecordset::snapshot, NULL, CRecordset::appendOnly|CRecordset::optimizeBulkAdd);
+			rsDetail.AddNew();
+			COrderPage::SetRsDetail(rsDetail,tipsinfo);
+			rsDetail.m_order_head_id=m_nOrderHeadid;
+			rsDetail.Update();
+
+			OrderDetail* payinfo=new OrderDetail;
+			memset(payinfo,0,sizeof(OrderDetail));
+			payinfo->item_id=ITEM_ID_PAYINFO;
+			payinfo->n_checkID=m_nActive;
+			payinfo->total_price=new_tips;
+			wcsncpy_s(payinfo->item_name,_T("Cash"),63);
+			rsDetail.AddNew();
+			COrderPage::SetRsDetail(rsDetail,payinfo);
+			rsDetail.m_order_head_id=m_nOrderHeadid;
+			rsDetail.Update();
+			//获取item_id
+			strSQL.Format(_T("SELECT LAST_INSERT_ID();"));
+			rs.Open(-1,strSQL);
+			CString strCount;
+			rs.GetFieldValue((short)0,strCount);
+			detail_id=_wtol(strCount);
+			rsDetail.Close();
+			delete tipsinfo;
+			delete payinfo;
+			strSQL.Format(_T("INSERT INTO history_order_detail select * from order_detail where order_head_id=%d AND check_id=%d"),m_nOrderHeadid,m_nActive);
+			theDB.ExecuteSQL(strSQL);
+			strSQL.Format(_T("DELETE FROM order_detail where order_head_id=%d AND check_id=%d"),m_nOrderHeadid,m_nActive);
+			theDB.ExecuteSQL(strSQL);
+			strSQL.Format(_T("INSERT INTO payment(order_head_id,check_id,tender_media_id,total,employee_id")
+				_T(",payment_time,pos_device_id,rvc_center_id,order_detail_id)")
+				_T(" VALUES (\'%d\',\'%d\',\'%d\',\'%0.2f\',\'%s\',\'%s\',\'%d\',%d,%d);"),
+				m_nOrderHeadid,m_nActive,1,new_tips,theApp.m_strUserID,end_time,
+				theApp.m_nDeviceId,theApp.m_nRVC,detail_id);
+			theDB.ExecuteSQL(strSQL);
+		}
+		else
+		{
+			strSQL.Format(_T("UPDATE history_order_detail SET product_price=%f,actual_price=%f WHERE order_detail_id=%d"),new_tips,new_tips,detail_id);
+			theDB.ExecuteSQL(strSQL);
+			int payment_id=0;
+			double pay_amount=0;
+			strSQL.Format(_T("SELECT * FROM payment WHERE order_head_id=%d AND check_id=%d AND tender_media_id=%d ORDER BY payment_id DESC"),m_nOrderHeadid,m_nActive,tender_id);
+			rs.Open( CRecordset::forwardOnly,strSQL);
+			if (!rs.IsEOF())
+			{
+				CDBVariant var;
+				CString strVal;
+				rs.GetFieldValue(_T("payment_id"),var);
+				payment_id=var.m_lVal;
+				rs.GetFieldValue(_T("order_detail_id"),var);
+				detail_id=var.m_lVal;
+				rs.GetFieldValue(_T("total"),strVal);
+				pay_amount=_wtof(strVal);
+			}
+			rs.Close();
+			pay_amount+=tips_diff;
+			if(payment_id>0)
+			{
+				strSQL.Format(_T("UPDATE payment SET total=%0.2f WHERE payment_id=%d"),pay_amount,payment_id);
+				theDB.ExecuteSQL(strSQL);
+				strSQL.Format(_T("UPDATE history_order_detail SET product_price=0,actual_price=%0.2f WHERE order_detail_id=%d"),pay_amount,detail_id);
+				theDB.ExecuteSQL(strSQL);
+			}
+		}
+		//刷新edit_time以便远程报表上传更新
+		strSQL.Format(_T("UPDATE history_order_head SET tips_amount=%0.2f,actual_amount=actual_amount+%0.2f,edit_time=NOW() WHERE order_head_id=%d AND check_id=%d"),new_tips,tips_diff,m_nOrderHeadid,m_nActive);
 		theDB.ExecuteSQL(strSQL);
+		//刷新显示
+		OnBnClickedSearch();
 	}
 	catch(CDBException* e)
 	{
